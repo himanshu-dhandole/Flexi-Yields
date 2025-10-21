@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract VirtualUSDT is ERC20, Ownable {
-    uint256 public constant LIMITED_MINT_AMOUNT = 10_000e18;
+    uint256 public constant AIRDROP_AMOUNT = 10_000e18;
 
     // Track which addresses have already claimed their limited mint
     mapping(address => bool) public hasClaimed;
@@ -17,10 +17,10 @@ contract VirtualUSDT is ERC20, Ownable {
     }
 
     // Allow each address to mint 10,000 VUSDT only once
-    function limitedMint() public {
+    function airdrop() public {
         require(!hasClaimed[msg.sender], "Already claimed");
         hasClaimed[msg.sender] = true;
-        _mint(msg.sender, LIMITED_MINT_AMOUNT);
+        _mint(msg.sender, AIRDROP_AMOUNT);
     }
 
     // burn vUSDT
