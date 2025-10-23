@@ -1,10 +1,385 @@
-import { title } from "@/components/primitives";
+// import { title } from "@/components/primitives";
+// import DefaultLayout from "@/layouts/default";
+
+// export default function VaultPage() {
+//   return (
+//     <DefaultLayout>
+//       <div></div>
+//     </DefaultLayout>
+//   );
+// }
+import { useEffect, useState } from "react";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Divider } from "@heroui/divider";
+import {
+  Wallet,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Gift,
+  TrendingUp,
+  Lock,
+  Coins,
+  Shield,
+} from "lucide-react";
+import { useAccount } from "wagmi";
+import { readContract, writeContract, waitForTransactionReceipt } from "@wagmi/core";
+import { parseUnits, formatUnits } from "viem";
+import { config } from "@/config/wagmiConfig";
+
+import VUSDT_ABI from "../abis/vUSDT.json";
+import VAULT_ABI from "../abis/Treasury.json";
+
 import DefaultLayout from "@/layouts/default";
+import { toast, ToastContainer } from "react-toastify";
+
+const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
+const VAULT_ADDRESS = import.meta.env.VITE_TREASURY_ADDRESS as `0x${string}`;
+
+interface VaultData {
+  locked: string;
+  available: string;
+}
 
 export default function VaultPage() {
+  const { address } = useAccount();
+  const [vusdtBalance, setVusdtBalance] = useState<string>("0");
+  const [vaultData, setVaultData] = useState<VaultData>({
+    locked: "0.00",
+    available: "0.00",
+  });
+  const [depositAmount, setDepositAmount] = useState<string>("");
+  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [loadingWithdraw, setLoadingWithdraw] = useState(false);
+
+  const loadVaultBalances = async () => {
+    if (!address) return;
+    try {
+      setLoading(true);
+
+      const vaultResult = await readContract(config, {
+        address: VAULT_ADDRESS,
+        abi: VAULT_ABI,
+        functionName: "getUserCollateral",
+        args: [],
+        account: address,
+      }) as { locked: bigint; available: bigint };
+
+      setVaultData({
+        locked: formatUnits(vaultResult.locked, 18),
+        available: formatUnits(vaultResult.available, 18),
+      });
+
+      const balance = await readContract(config, {
+        address: VUSDT_ADDRESS,
+        abi: VUSDT_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      }) as bigint;
+
+      setVusdtBalance(formatUnits(balance, 18));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load vault balances.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAirdrop = async () => {
+    if (!address) return;
+    try {
+      const hasClaimed = await readContract(config, {
+        address: VUSDT_ADDRESS,
+        abi: VUSDT_ABI,
+        functionName: "hasClaimed",
+        args: [address],
+      }) as boolean;
+
+      if (hasClaimed) {
+        toast.error("You already claimed your airdrop.");
+        return;
+      }
+
+      const tx = await writeContract(config, {
+        address: VUSDT_ADDRESS,
+        abi: VUSDT_ABI,
+        functionName: "limitedMint",
+        args: [],
+      });
+
+      toast.info("Transaction sent. Waiting for confirmation...");
+
+      const receipt = await waitForTransactionReceipt(config, { hash: tx });
+
+      if (receipt.status === "success") {
+        toast.success("Airdrop successful!");
+        await loadVaultBalances();
+      } else {
+        toast.error("Airdrop failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Airdrop failed.");
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!address || !depositAmount) return;
+    try {
+      setLoading(true);
+      const amt = parseUnits(depositAmount, 18);
+
+      const allowance = await readContract(config, {
+        address: VUSDT_ADDRESS,
+        abi: VUSDT_ABI,
+        functionName: "allowance",
+        args: [address, VAULT_ADDRESS],
+      }) as bigint;
+
+      if (allowance < amt) {
+        const approveTx = await writeContract(config, {
+          address: VUSDT_ADDRESS,
+          abi: VUSDT_ABI,
+          functionName: "approve",
+          args: [VAULT_ADDRESS, amt],
+        });
+
+        toast.info("Approving spend...");
+
+        await waitForTransactionReceipt(config, { hash: approveTx });
+      }
+
+      const tx = await writeContract(config, {
+        address: VAULT_ADDRESS,
+        abi: VAULT_ABI,
+        functionName: "deposit",
+        args: [amt],
+      });
+
+      toast.info("Depositing... please wait");
+
+      const receipt = await waitForTransactionReceipt(config, { hash: tx });
+
+      if (receipt.status === "success") {
+        toast.success("Deposit successful!");
+        setDepositAmount("");
+        await loadVaultBalances();
+      } else {
+        toast.error("Deposit failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Deposit failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!address || !withdrawAmount) return;
+    try {
+      setLoadingWithdraw(true);
+      const amt = parseUnits(withdrawAmount, 18);
+
+      const tx = await writeContract(config, {
+        address: VAULT_ADDRESS,
+        abi: VAULT_ABI,
+        functionName: "withdrawal",
+        args: [amt],
+      });
+
+      toast.info("Withdrawing... please wait");
+
+      const receipt = await waitForTransactionReceipt(config, { hash: tx });
+
+      if (receipt.status === "success") {
+        toast.success("Withdrawal successful!");
+        setWithdrawAmount("");
+        await loadVaultBalances();
+      } else {
+        toast.error("Withdrawal failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Withdrawal failed.");
+    } finally {
+      setLoadingWithdraw(false);
+    }
+  };
+
+  useEffect(() => {
+    if (address) loadVaultBalances();
+  }, [address]);
+
   return (
     <DefaultLayout>
-      <div></div>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto p-6">
+          {/* Header */}
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Vault Dashboard
+            </h1>
+            <p className="text-foreground-600">
+              Manage your vUSDT deposits and withdrawals
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Vault Overview */}
+            <div className="lg:col-span-2">
+              <Card className="h-full">
+                <CardHeader>
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <TrendingUp size={20} className="text-violet-600" />
+                    Portfolio Overview
+                  </h2>
+                </CardHeader>
+                <CardBody className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-default-50 rounded-lg">
+                      <div className="text-2xl font-bold text-foreground mb-1">
+                        $ {parseFloat(vaultData.locked).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-foreground-600 flex items-center justify-center gap-1">
+                        <Lock size={14} /> Locked
+                      </div>
+                    </div>
+                    <div className="text-center p-4 bg-default-50 rounded-lg">
+                      <div className="text-2xl font-bold text-foreground mb-1">
+                        $ {parseFloat(vaultData.available).toFixed(2)}
+                      </div>
+                      <div className="text-sm text-foreground-600 flex items-center justify-center gap-1">
+                        <Coins size={14} /> Available
+                      </div>
+                    </div>
+                  </div>
+
+                  <Divider />
+
+                  <div className="flex items-center justify-between p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Wallet size={18} className="text-violet-600" />
+                      <span className="font-medium text-foreground">Wallet Balance</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-violet-600">
+                        {parseFloat(vusdtBalance).toLocaleString()} vUSDT
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Gift size={18} className="text-violet-600" />
+                  Quick Actions
+                </h3>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <Button
+                  color="success"
+                  onPress={handleAirdrop}
+                  className="w-full justify-start"
+                  variant="flat"
+                >
+                  <Gift size={16} /> Claim Airdrop (10k vUSDT)
+                </Button>
+
+                <Divider />
+
+                <div className="p-3 bg-warning-50 dark:bg-warning-950/20 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Shield size={16} className="text-warning-600 mt-0.5" />
+                    <div className="text-sm text-warning-700 dark:text-warning-300">
+                      Always verify transaction details before confirming
+                    </div>
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Deposit */}
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <ArrowUpCircle size={18} className="text-success" />
+                  Deposit
+                </h3>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <Input
+                  type="number"
+                  label="Amount"
+                  placeholder="0.00"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  endContent={<span className="text-sm text-foreground-500">vUSDT</span>}
+                />
+                <Button
+                  color="success"
+                  onPress={handleDeposit}
+                  className="w-full"
+                  isLoading={loading}
+                  isDisabled={!depositAmount || parseFloat(depositAmount) <= 0}
+                >
+                  <ArrowUpCircle size={16} /> Deposit to Vault
+                </Button>
+              </CardBody>
+            </Card>
+
+            {/* Withdraw */}
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <ArrowDownCircle size={18} className="text-danger" />
+                  Withdraw
+                </h3>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <Input
+                  type="number"
+                  label="Amount"
+                  placeholder="0.00"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  endContent={<span className="text-sm text-foreground-500">vUSDT</span>}
+                />
+                <Button
+                  color="danger"
+                  variant="bordered"
+                  onPress={handleWithdraw}
+                  className="w-full"
+                  isLoading={loadingWithdraw}
+                  isDisabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0}
+                >
+                  <ArrowDownCircle size={16} /> Withdraw from Vault
+                </Button>
+              </CardBody>
+            </Card>
+          </div>
+        </div>
+
+        <ToastContainer
+          position="bottom-right"
+          autoClose={4000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          draggable
+          theme="dark"
+        />
+      </div>
     </DefaultLayout>
   );
 }
