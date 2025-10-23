@@ -1,13 +1,3 @@
-// import { title } from "@/components/primitives";
-// import DefaultLayout from "@/layouts/default";
-
-// export default function VaultPage() {
-//   return (
-//     <DefaultLayout>
-//       <div></div>
-//     </DefaultLayout>
-//   );
-// }
 import { useEffect, useState } from "react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Button } from "@heroui/button";
@@ -18,7 +8,6 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   Gift,
-  TrendingUp,
   Lock,
   Coins,
   Shield,
@@ -62,14 +51,16 @@ export default function VaultPage() {
       const vaultResult = await readContract(config, {
         address: VAULT_ADDRESS,
         abi: VAULT_ABI,
-        functionName: "getUserCollateral",
-        args: [],
-        account: address,
-      }) as { locked: bigint; available: bigint };
+        functionName: "getBalance",
+        args: [address],
+      }) as {
+        lockedBalance: bigint;
+        availableBalance: bigint;
+      };
 
       setVaultData({
-        locked: formatUnits(vaultResult.locked, 18),
-        available: formatUnits(vaultResult.available, 18),
+        locked: formatUnits(vaultResult.lockedBalance, 18),
+        available: formatUnits(vaultResult.availableBalance, 18),
       });
 
       const balance = await readContract(config, {
@@ -187,7 +178,7 @@ export default function VaultPage() {
       const tx = await writeContract(config, {
         address: VAULT_ADDRESS,
         abi: VAULT_ABI,
-        functionName: "withdrawal",
+        functionName: "withdraw",
         args: [amt],
       });
 
@@ -214,158 +205,164 @@ export default function VaultPage() {
     if (address) loadVaultBalances();
   }, [address]);
 
+  const totalBalance = parseFloat(vaultData.locked) + parseFloat(vaultData.available);
+
   return (
-    <DefaultLayout>
+     <DefaultLayout>
       <div className="min-h-screen bg-background">
-        <div className="max-w-6xl mx-auto p-6">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold text-foreground mb-2">
-              Vault Dashboard
-            </h1>
-            <p className="text-foreground-600">
-              Manage your vUSDT deposits and withdrawals
-            </p>
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          {/* Hero Balance Section */}
+          <div className="relative mb-8 overflow-hidden rounded-3xl bg-default-100 border border-divider">
+            <div className="relative p-8">
+              <div className="flex items-center gap-2 mb-6 text-foreground-600">
+                <Wallet size={20} />
+                <span className="text-sm font-medium uppercase tracking-wider">Total Vault Balance</span>
+              </div>
+              <div className="text-6xl font-bold text-foreground mb-2">
+                ${totalBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+              </div>
+              <div className="flex gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <Lock size={14} className="text-violet-500" />
+                  <span className="text-foreground-600">${parseFloat(vaultData.locked).toFixed(2)} locked</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Coins size={14} className="text-success-500" />
+                  <span className="text-foreground-600">${parseFloat(vaultData.available).toFixed(2)} available</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Vault Overview */}
-            <div className="lg:col-span-2">
-              <Card className="h-full">
-                <CardHeader>
-                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                    <TrendingUp size={20} className="text-violet-600" />
-                    Portfolio Overview
-                  </h2>
-                </CardHeader>
-                <CardBody className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-default-50 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground mb-1">
-                        $ {parseFloat(vaultData.locked).toFixed(2)}
-                      </div>
-                      <div className="text-sm text-foreground-600 flex items-center justify-center gap-1">
-                        <Lock size={14} /> Locked
-                      </div>
-                    </div>
-                    <div className="text-center p-4 bg-default-50 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground mb-1">
-                        $ {parseFloat(vaultData.available).toFixed(2)}
-                      </div>
-                      <div className="text-sm text-foreground-600 flex items-center justify-center gap-1">
-                        <Coins size={14} /> Available
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            
+            {/* Wallet Balance Card */}
+            <Card className="bg-content1 border-divider">
+              <CardBody className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-violet-500/20">
+                    <Wallet size={18} className="text-violet-500" />
                   </div>
+                  <span className="text-sm text-foreground-500 uppercase tracking-wide">Wallet</span>
+                </div>
+                <div className="text-2xl font-bold text-foreground">
+                  {parseFloat(vusdtBalance).toLocaleString()}
+                </div>
+                <div className="text-sm text-foreground-500 mt-1">vUSDT</div>
+              </CardBody>
+            </Card>
 
-                  <Divider />
-
-                  <div className="flex items-center justify-between p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Wallet size={18} className="text-violet-600" />
-                      <span className="font-medium text-foreground">Wallet Balance</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-semibold text-violet-600">
-                        {parseFloat(vusdtBalance).toLocaleString()} vUSDT
-                      </div>
-                    </div>
+            {/* Airdrop Card */}
+            <Card className="bg-content1 border-divider lg:col-span-2">
+              <CardBody className="p-6 flex flex-row items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-success-500/20">
+                    <Gift size={22} className="text-success-500" />
                   </div>
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Gift size={18} className="text-violet-600" />
-                  Quick Actions
-                </h3>
-              </CardHeader>
-              <CardBody className="space-y-4">
-                <Button
-                  color="success"
-                  onPress={handleAirdrop}
-                  className="w-full justify-start"
-                  variant="flat"
-                >
-                  <Gift size={16} /> Claim Airdrop (10k vUSDT)
-                </Button>
-
-                <Divider />
-
-                <div className="p-3 bg-warning-50 dark:bg-warning-950/20 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Shield size={16} className="text-warning-600 mt-0.5" />
-                    <div className="text-sm text-warning-700 dark:text-warning-300">
-                      Always verify transaction details before confirming
-                    </div>
+                  <div>
+                    <div className="text-lg font-semibold text-foreground">Claim Your Airdrop</div>
+                    <div className="text-sm text-foreground-500">Get 10,000 vUSDT instantly</div>
                   </div>
                 </div>
+                <Button
+                  onPress={handleAirdrop}
+                  className="bg-gradient-to-r from-success-500 to-success-600 text-white font-semibold"
+                  size="lg"
+                >
+                  Claim Now
+                </Button>
               </CardBody>
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
             {/* Deposit */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <ArrowUpCircle size={18} className="text-success" />
-                  Deposit
-                </h3>
+            <Card className="bg-content1 border-divider">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-success-500/20">
+                    <ArrowUpCircle size={16} className="text-success-500" />
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground">Deposit</h3>
+                </div>
               </CardHeader>
-              <CardBody className="space-y-4">
-                <Input
-                  type="number"
-                  label="Amount"
-                  placeholder="0.00"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  endContent={<span className="text-sm text-foreground-500">vUSDT</span>}
-                />
+              <Divider className="bg-divider" />
+              <CardBody className="pt-6 space-y-4">
+                <div>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    classNames={{
+                      input: "text-2xl font-semibold",
+                      inputWrapper: "bg-default-100 border-divider h-16"
+                    }}
+                    endContent={
+                      <span className="text-foreground-500 text-sm font-medium">vUSDT</span>
+                    }
+                  />
+                </div>
                 <Button
-                  color="success"
                   onPress={handleDeposit}
-                  className="w-full"
+                  className="w-full bg-success-500 hover:bg-success-600 text-white font-semibold h-12"
                   isLoading={loading}
                   isDisabled={!depositAmount || parseFloat(depositAmount) <= 0}
                 >
-                  <ArrowUpCircle size={16} /> Deposit to Vault
+                  Deposit to Vault
                 </Button>
               </CardBody>
             </Card>
 
             {/* Withdraw */}
-            <Card>
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <ArrowDownCircle size={18} className="text-danger" />
-                  Withdraw
-                </h3>
+            <Card className="bg-content1 border-divider">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-danger-500/20">
+                    <ArrowDownCircle size={16} className="text-danger-500" />
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground">Withdraw</h3>
+                </div>
               </CardHeader>
-              <CardBody className="space-y-4">
-                <Input
-                  type="number"
-                  label="Amount"
-                  placeholder="0.00"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  endContent={<span className="text-sm text-foreground-500">vUSDT</span>}
-                />
+              <Divider className="bg-divider" />
+              <CardBody className="pt-6 space-y-4">
+                <div>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    classNames={{
+                      input: "text-2xl font-semibold",
+                      inputWrapper: "bg-default-100 border-divider h-16"
+                    }}
+                    endContent={
+                      <span className="text-foreground-500 text-sm font-medium">vUSDT</span>
+                    }
+                  />
+                </div>
                 <Button
-                  color="danger"
-                  variant="bordered"
                   onPress={handleWithdraw}
-                  className="w-full"
+                  className="w-full bg-danger-500/10 hover:bg-danger-500/20 text-danger-500 font-semibold h-12 border border-danger-500/30"
                   isLoading={loadingWithdraw}
                   isDisabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0}
                 >
-                  <ArrowDownCircle size={16} /> Withdraw from Vault
+                  Withdraw from Vault
                 </Button>
               </CardBody>
             </Card>
+          </div>
+
+          {/* Security Notice */}
+          <div className="mt-6 p-4 rounded-xl bg-amber-600/10 border border-amber-600/20">
+            <div className="flex items-start gap-3">
+              <Shield size={18} className="text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-amber-200/80">
+                Always verify transaction details before confirming. Your funds are secured by smart contracts.
+              </p>
+            </div>
           </div>
         </div>
 

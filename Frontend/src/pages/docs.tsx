@@ -153,13 +153,13 @@ export default function DocsPage() {
     if (!address) return;
     try {
       const vusdtBalance = await readContract(config, {
-        address: VUSDT_ADDRESS,
-        abi: VUSDT_ABI,
-        functionName: "balanceOf",
+        address: TREASURY_ADDRESS,
+        abi: TREASURY_ABI,
+        functionName: "getBalance",
         args: [address],
-      }) as bigint;
+      }) as any;
 
-      console.log("vUSDT Balance:", vusdtBalance.toString());
+      console.log("vUSDT Balance:",vusdtBalance);
     } catch (err) {
       console.error("Failed to load balances:", err);
     }
