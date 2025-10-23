@@ -5,9 +5,7 @@ import DocsPage from "@/pages/docs";
 import PricingPage from "@/pages/pricing";
 import BlogPage from "@/pages/blog";
 import AboutPage from "@/pages/about";
-import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { client } from "./config/wagmiConfig";
 import { ThirdwebProvider } from "thirdweb/react";
 
 
