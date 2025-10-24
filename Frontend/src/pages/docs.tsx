@@ -164,6 +164,33 @@ export default function DocsPage() {
       console.error("Failed to load balances:", err);
     }
   }
+ 
+  const loadPools = async () => {
+    if (!address) return;
+    try {
+      const pool_1_Balance = await readContract(config, {
+        address: POOL_1_ADDRESS,
+        abi: POOL_ABI,
+        functionName: "currentYield",
+      }) as any;
+      const pool_2_Balance = await readContract(config, {
+        address: POOL_2_ADDRESS,
+        abi: POOL_ABI,
+        functionName: "currentYield",
+      }) as any;
+      const pool_3_Balance = await readContract(config, {
+        address: POOL_3_ADDRESS,
+        abi: POOL_ABI,
+        functionName: "currentYield",
+      }) as any;
+
+      console.log("Pool 1 Info:",pool_1_Balance);
+      console.log("Pool 2 Info:",pool_2_Balance);
+      console.log("Pool 3 Info:",pool_3_Balance);
+    } catch (err) {
+      console.error("Failed to load Pool 1 info:", err);
+    }
+  }
 
   return (
     <DefaultLayout>
@@ -203,6 +230,13 @@ export default function DocsPage() {
         >
           Load Balances
         </button>
+        <button
+          onClick={loadPools}
+          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Load Pool Yields
+        </button>
+
       </section>
     </DefaultLayout>
   );
