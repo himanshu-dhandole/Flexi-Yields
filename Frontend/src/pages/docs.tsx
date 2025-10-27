@@ -84,9 +84,8 @@ import { readContract, writeContract, waitForTransactionReceipt } from "wagmi/ac
 import { useState } from "react";
 
 import VUSDT_ABI from "../abis/vUSDT.json";
-import POOL_ABI from "../abis/pool.json";
-import TREASURY_ABI from "../abis/Treasury.json";
-import POOLROUTER_ABI from "../abis/poolRouter.json";
+import YIELD_VAULT_ABI from "../abis/yieldVault.json";
+import STRATEGY_MANAGER_ABI from "../abis/strategyManager.json";
 import { config } from "@/config/wagmiConfig";
 
 export default function DocsPage() {
@@ -97,11 +96,8 @@ export default function DocsPage() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
-  const POOL_1_ADDRESS = import.meta.env.VITE_POOL_1_ADDRESS as `0x${string}`;
-  const POOL_2_ADDRESS = import.meta.env.VITE_POOL_2_ADDRESS as `0x${string}`;
-  const POOL_3_ADDRESS = import.meta.env.VITE_POOL_3_ADDRESS as `0x${string}`;
-  const TREASURY_ADDRESS = import.meta.env.VITE_TREASURY_ADDRESS as `0x${string}`;
-  const POOLROUTER_ADDRESS = import.meta.env.VITE_POOL_ROUTER_ADDRESS as `0x${string}`;
+  const YIELD_VAULT_ADDRESS = import.meta.env.VITE_YIELD_VAULT_ADDRESS as `0x${string}`;
+  const STRATEGY_MANAGER_ADDRESS = import.meta.env.VITE_STRATEGY_MANAGER_ADDRESS as `0x${string}`;
 
   const handleAirdrop = async () => {
     if (!address) return;
@@ -153,9 +149,9 @@ export default function DocsPage() {
     if (!address) return;
     try {
       const vusdtBalance = await readContract(config, {
-        address: TREASURY_ADDRESS,
-        abi: TREASURY_ABI,
-        functionName: "getBalance",
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "balanceOf",
         args: [address],
       }) as any;
 
@@ -165,32 +161,6 @@ export default function DocsPage() {
     }
   }
  
-  const loadPools = async () => {
-    if (!address) return;
-    try {
-      const pool_1_Balance = await readContract(config, {
-        address: POOL_1_ADDRESS,
-        abi: POOL_ABI,
-        functionName: "currentYield",
-      }) as any;
-      const pool_2_Balance = await readContract(config, {
-        address: POOL_2_ADDRESS,
-        abi: POOL_ABI,
-        functionName: "currentYield",
-      }) as any;
-      const pool_3_Balance = await readContract(config, {
-        address: POOL_3_ADDRESS,
-        abi: POOL_ABI,
-        functionName: "currentYield",
-      }) as any;
-
-      console.log("Pool 1 Info:",pool_1_Balance);
-      console.log("Pool 2 Info:",pool_2_Balance);
-      console.log("Pool 3 Info:",pool_3_Balance);
-    } catch (err) {
-      console.error("Failed to load Pool 1 info:", err);
-    }
-  }
 
   return (
     <DefaultLayout>
@@ -230,12 +200,7 @@ export default function DocsPage() {
         >
           Load Balances
         </button>
-        <button
-          onClick={loadPools}
-          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          Load Pool Yields
-        </button>
+      
 
       </section>
     </DefaultLayout>

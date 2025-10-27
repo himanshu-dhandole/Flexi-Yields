@@ -18,13 +18,13 @@ import { parseUnits, formatUnits } from "viem";
 import { config } from "@/config/wagmiConfig";
 
 import VUSDT_ABI from "../abis/vUSDT.json";
-import VAULT_ABI from "../abis/Treasury.json";
+import YIELD_VAULT_ABI from "../abis/yieldVault.json";
 
 import DefaultLayout from "@/layouts/default";
 import { toast, ToastContainer } from "react-toastify";
 
-const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
-const VAULT_ADDRESS = import.meta.env.VITE_TREASURY_ADDRESS as `0x${string}`;
+  const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
+  const YIELD_VAULT_ADDRESS = import.meta.env.VITE_YIELD_VAULT_ADDRESS as `0x${string}`;
 
 interface VaultData {
   locked: string;
@@ -34,10 +34,7 @@ interface VaultData {
 export default function VaultPage() {
   const { address } = useAccount();
   const [vusdtBalance, setVusdtBalance] = useState<string>("0");
-  const [vaultData, setVaultData] = useState<VaultData>({
-    locked: "0.00",
-    available: "0.00",
-  });
+  const [vaultData, setVaultData] = useState<string>("0");
   const [depositAmount, setDepositAmount] = useState<string>("");
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -49,19 +46,13 @@ export default function VaultPage() {
       setLoading(true);
 
       const vaultResult = await readContract(config, {
-        address: VAULT_ADDRESS,
-        abi: VAULT_ABI,
-        functionName: "getBalance",
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "balanceOf",
         args: [address],
-      }) as {
-        lockedBalance: bigint;
-        availableBalance: bigint;
-      };
+      }) as bigint;
 
-      setVaultData({
-        locked: formatUnits(vaultResult.lockedBalance, 18),
-        available: formatUnits(vaultResult.availableBalance, 18),
-      });
+      setVaultData(formatUnits(vaultResult, 18));
 
       const balance = await readContract(config, {
         address: VUSDT_ADDRESS,
@@ -127,7 +118,7 @@ export default function VaultPage() {
         address: VUSDT_ADDRESS,
         abi: VUSDT_ABI,
         functionName: "allowance",
-        args: [address, VAULT_ADDRESS],
+        args: [address, YIELD_VAULT_ADDRESS],
       }) as bigint;
 
       if (allowance < amt) {
@@ -135,7 +126,7 @@ export default function VaultPage() {
           address: VUSDT_ADDRESS,
           abi: VUSDT_ABI,
           functionName: "approve",
-          args: [VAULT_ADDRESS, amt],
+          args: [YIELD_VAULT_ADDRESS, amt],
         });
 
         toast.info("Approving spend...");
@@ -144,10 +135,10 @@ export default function VaultPage() {
       }
 
       const tx = await writeContract(config, {
-        address: VAULT_ADDRESS,
-        abi: VAULT_ABI,
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
         functionName: "deposit",
-        args: [amt],
+        args: [amt , address],
       });
 
       toast.info("Depositing... please wait");
@@ -176,10 +167,10 @@ export default function VaultPage() {
       const amt = parseUnits(withdrawAmount, 18);
 
       const tx = await writeContract(config, {
-        address: VAULT_ADDRESS,
-        abi: VAULT_ABI,
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
         functionName: "withdraw",
-        args: [amt],
+        args: [amt , address , address],
       });
 
       toast.info("Withdrawing... please wait");
@@ -205,11 +196,10 @@ export default function VaultPage() {
     if (address) loadVaultBalances();
   }, [address]);
 
-  const totalBalance = parseFloat(vaultData.locked) + parseFloat(vaultData.available);
 
   return (
      <DefaultLayout>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen pt-26 bg-background">
         <div className="max-w-5xl mx-auto px-4 py-8">
           {/* Hero Balance Section */}
           <div className="relative mb-8 overflow-hidden rounded-3xl bg-default-100 border border-divider">
@@ -219,16 +209,16 @@ export default function VaultPage() {
                 <span className="text-sm font-medium uppercase tracking-wider">Total Vault Balance</span>
               </div>
               <div className="text-6xl font-bold text-foreground mb-2">
-                ${totalBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                ${parseFloat(vaultData).toFixed(2)}
               </div>
               <div className="flex gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <Lock size={14} className="text-violet-500" />
-                  <span className="text-foreground-600">${parseFloat(vaultData.locked).toFixed(2)} locked</span>
+                  <span className="text-foreground-600">${parseFloat(vaultData).toFixed(2)} locked</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Coins size={14} className="text-success-500" />
-                  <span className="text-foreground-600">${parseFloat(vaultData.available).toFixed(2)} available</span>
+                  <span className="text-foreground-600">${parseFloat(vaultData).toFixed(2)} available</span>
                 </div>
               </div>
             </div>
