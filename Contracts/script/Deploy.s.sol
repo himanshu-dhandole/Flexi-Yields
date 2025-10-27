@@ -1,54 +1,102 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
-
+pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
-import "../src/core/vUSDT.sol";
-import "../src/core/Treasury.sol";
-import "../src/core/Pool.sol";
-import "../src/core/PoolRouter.sol";
-
+import "../src/tokens/vUSDT.sol";
+import "../src/core/StrategyManager.sol";
+import "../src/core/YieldVault.sol";
+import "../src/strategies/LendingStrategy.sol";
+import "../src/strategies/LiquidityStrategy.sol";
+import "../src/strategies/StakingStrategy.sol";
+/**
+ * @title Deploy
+ * @notice Deployment script for Yield Aggregator
+ * @dev Run with: forge script script/Deploy.s.sol:Deploy --rpc-url <RPC> --broadcast
+ */
 contract Deploy is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
-
-        // 1️⃣ Deploy mock token
-        VirtualUSDT vusdt = new VirtualUSDT();
-        console.log(" VirtualUSDT deployed at:", address(vusdt));
-
-        // 2️⃣ Deploy Vault (Treasury)
-        Vault vault = new Vault(address(vusdt));
-        console.log(" Vault deployed at:", address(vault));
-
-        // 3️⃣ Deploy Yield Pools
-        YieldPool pool1 = new YieldPool(address(vusdt));
-        YieldPool pool2 = new YieldPool(address(vusdt));
-        YieldPool pool3 = new YieldPool(address(vusdt));
-        console.log(" YieldPool1:", address(pool1));
-        console.log(" YieldPool2:", address(pool2));
-        console.log(" YieldPool3:", address(pool3));
-
-        // 4️⃣ Mint initial liquidity to each pool (so pools can pay yield)
-        uint256 poolFund = 5_000_000e18; // 5 million vUSDT each
-        vusdt.mint(address(pool1), poolFund);
-        vusdt.mint(address(pool2), poolFund);
-        vusdt.mint(address(pool3), poolFund);
-        console.log(" Funded each pool with:", poolFund / 1e18, "VUSDT");
-
-        // 5️⃣ Deploy Router
-        YieldRouter router = new YieldRouter(address(vault));
-        console.log(" YieldRouter deployed at:", address(router));
-
-        // 6️⃣ Add pools to router
-        router.addPool(address(pool1));
-        router.addPool(address(pool2));
-        router.addPool(address(pool3));
-        console.log(" Pools added to router");
-
-        // 7️⃣ Transfer Vault ownership to router (optional)
-        vault.transferOwnership(address(router));
-        console.log(" Vault ownership transferred to router");
-
+        
+        console.log("====================================");
+        console.log("Deploying Yield Aggregator V1");
+        console.log("====================================\n");
+        
+        // 1. Deploy Mock vUSDT
+        console.log("1. Deploying Mock vUSDT...");
+        VirtualUSDT vUSDT = new VirtualUSDT();
+        console.log("   vUSDT deployed at:", address(vUSDT));
+        console.log("   Initial supply:", vUSDT.totalSupply() / 1e18, "vUSDT\n");
+        
+        // 2. Deploy Strategy Manager
+        console.log("2. Deploying Strategy Manager...");
+        StrategyManager strategyManager = new StrategyManager();
+        console.log("   StrategyManager deployed at:", address(strategyManager));
+        console.log("");
+        
+        // 3. Deploy Strategies
+        console.log("3. Deploying Strategies...");
+        
+        LendingStrategy lendingStrategy = new LendingStrategy(vUSDT);
+        console.log("   LendingStrategy deployed at:", address(lendingStrategy));
+        console.log("   Base APY: 4%");
+        
+        LiquidityStrategy liquidityStrategy = new LiquidityStrategy(vUSDT);
+        console.log("   LiquidityStrategy deployed at:", address(liquidityStrategy));
+        console.log("   Base APY: 12%");
+        
+        StakingStrategy stakingStrategy = new StakingStrategy(vUSDT);
+        console.log("   StakingStrategy deployed at:", address(stakingStrategy));
+        console.log("   Base APY: 7%\n");
+        
+        // 4. Deploy Main Vault
+        console.log("4. Deploying Main Vault...");
+        YieldVault vault = new YieldVault(vUSDT, address(strategyManager));
+        console.log("   YieldVault deployed at:", address(vault));
+        console.log("   Vault Token: yvUSDT\n");
+        
+        // 5. Configure Strategy Manager
+        console.log("5. Configuring Strategy Manager...");
+        strategyManager.setVault(address(vault));
+        console.log("   Vault address set");
+        
+        strategyManager.addStrategy(address(lendingStrategy), 4000); // 40%
+        console.log("   LendingStrategy added (40% allocation)");
+        
+        strategyManager.addStrategy(address(liquidityStrategy), 3000); // 30%
+        console.log("   LiquidityStrategy added (30% allocation)");
+        
+        strategyManager.addStrategy(address(stakingStrategy), 3000); // 30%
+        console.log("   StakingStrategy added (30% allocation)\n");
+        
+        // 6. Configure Strategies
+        console.log("6. Configuring Strategies...");
+        lendingStrategy.setVault(address(vault));
+        liquidityStrategy.setVault(address(vault));
+        stakingStrategy.setVault(address(vault));
+        console.log("   Vault address set in all strategies\n");
+        
+        // 7. Summary
+        console.log("====================================");
+        console.log("Deployment Complete!");
+        console.log("====================================");
+        console.log("\nContract Addresses:");
+        console.log("-----------------------------------");
+        console.log("vUSDT:              ", address(vUSDT));
+        console.log("StrategyManager:    ", address(strategyManager));
+        console.log("YieldVault:         ", address(vault));
+        console.log("LendingStrategy:    ", address(lendingStrategy));
+        console.log("LiquidityStrategy:  ", address(liquidityStrategy));
+        console.log("StakingStrategy:    ", address(stakingStrategy));
+        console.log("-----------------------------------\n");
+        
+        console.log("Next Steps:");
+        console.log("1. Mint vUSDT to users: vUSDT.mint(address, amount)");
+        console.log("2. Users approve vault: vUSDT.approve(vault, amount)");
+        console.log("3. Users deposit: vault.deposit(amount, receiver)");
+        console.log("4. Monitor yields: vault.estimatedVaultAPY()");
+        console.log("5. Harvest: vault.harvestAll()");
+        console.log("6. Rebalance: vault.rebalance()\n");
+        
         vm.stopBroadcast();
     }
 }
