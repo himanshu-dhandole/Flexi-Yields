@@ -41,7 +41,7 @@
     constructor(
         IERC20 _asset,
         address _strategyManager
-    ) ERC4626(_asset) ERC20("Yield Vault Token", "yvETH") Ownable(msg.sender) {
+    ) ERC4626(_asset) ERC20("Flexi Yield Token", "FLEX") Ownable(msg.sender) {
         require(_strategyManager != address(0), "YieldVault: Invalid strategy manager");
         strategyManager = StrategyManager(_strategyManager);
         feeRecipient = msg.sender;
@@ -102,7 +102,6 @@
         
         // Calculate withdrawal fee
         uint256 fee = (assets * withdrawalFee) / BASIS_POINTS;
-        uint256 assetsAfterFee = assets - fee;
         
         // Ensure enough liquidity in vault
         uint256 availableBalance = IERC20(asset()).balanceOf(address(this));
@@ -228,7 +227,7 @@
                     if (strategyBalance > 0) {
                         uint256 toWithdraw = remaining > strategyBalance ? strategyBalance : remaining;
                         
-                        try IStrategy(strategy).withdraw(toWithdraw) returns (uint256 withdrawn) {
+                        try IStrategy(strategy).withdraw(toWithdraw, msg.sender, owner()) returns (uint256 withdrawn) {
                             remaining -= withdrawn;
                         } catch {
                             // Skip strategy if withdraw fails
