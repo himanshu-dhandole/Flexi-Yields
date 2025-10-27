@@ -22,7 +22,6 @@ import {
   SearchIcon,
 } from "@/components/icons";
 import { Logo } from "@/components/icons";
-import { WalletConnectButton } from "./WalletConnect";
 import { ConnectButton } from "thirdweb/react";
 import { client } from "@/config/thirdwebConfig";
 import { createWallet } from "thirdweb/wallets";
@@ -59,14 +58,14 @@ export const Navbar = () => {
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarBrand className="gap-3 max-w-fit">
+        <NavbarBrand className="gap-3 max-w-fit pr-2">
           <Link
             className="flex justify-start items-center gap-1"
             color="foreground"
             href="/"
           >
-            <Logo />
-            <p className="font-bold text-inherit">ACME</p>
+            <img src=".\src\lib\logo1.png" alt="Flexi Yield Logo" width={32} height={32} />
+            <p className="font-bold text-inherit">FLEXI YIELD</p>
           </Link>
         </NavbarBrand>
         <div className="hidden lg:flex gap-4 justify-start ml-2">
