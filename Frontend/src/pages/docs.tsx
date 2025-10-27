@@ -86,7 +86,12 @@ import { useState } from "react";
 import VUSDT_ABI from "../abis/vUSDT.json";
 import YIELD_VAULT_ABI from "../abis/yieldVault.json";
 import STRATEGY_MANAGER_ABI from "../abis/strategyManager.json";
+import LENDING_STRATEGY_ABI from "../abis/lendingStrategy.json";
+import LIQUIDITY_STRATEGY_ABI from "../abis/liquidityStrategy.json";
+import STAKING_STRATEGY_ABI from "../abis/stakingStrategy.json";
 import { config } from "@/config/wagmiConfig";
+import { Button } from "@heroui/button";
+import { formatUnits } from "viem";
 
 export default function DocsPage() {
   const { address } = useAccount();
@@ -98,6 +103,9 @@ export default function DocsPage() {
   const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
   const YIELD_VAULT_ADDRESS = import.meta.env.VITE_YIELD_VAULT_ADDRESS as `0x${string}`;
   const STRATEGY_MANAGER_ADDRESS = import.meta.env.VITE_STRATEGY_MANAGER_ADDRESS as `0x${string}`;
+  const LENDING_STRATEGY_ADDRESS = import.meta.env.VITE_LENDING_STRATEGY_ADDRESS as `0x${string}`;
+  const LIQUIDITY_STRATEGY_ADDRESS = import.meta.env.VITE_LIQUIDITY_STRATEGY_ADDRESS as `0x${string}`;
+  const STAKING_STRATEGY_ADDRESS = import.meta.env.VITE_STAKING_STRATEGY_ADDRESS as `0x${string}`;
 
   const handleAirdrop = async () => {
     if (!address) return;
@@ -145,6 +153,7 @@ export default function DocsPage() {
     }
   };
 
+
   const loadBalances = async () => {
     if (!address) return;
     try {
@@ -160,11 +169,136 @@ export default function DocsPage() {
       console.error("Failed to load balances:", err);
     }
   }
+
+  const getLendingStrategy = async () => {
+    try {
+      const lendingStrategyAssets = await readContract(config, {
+        address: LIQUIDITY_STRATEGY_ADDRESS,
+        abi: LIQUIDITY_STRATEGY_ABI,
+        functionName: "totalAssets",
+        account: address,
+      }) as bigint;
+
+      const stakingStrategyAssets = await readContract(config, {
+        address: STAKING_STRATEGY_ADDRESS,
+        abi: STAKING_STRATEGY_ABI,
+        functionName: "totalAssets",
+        account: address,
+      }) as bigint;
+
+      const liquidityStrategyAssets = await readContract(config, {
+        address: LIQUIDITY_STRATEGY_ADDRESS,
+        abi: LIQUIDITY_STRATEGY_ABI,
+        functionName: "totalAssets",
+        account: address,
+      }) as bigint;
+
+      console.log("Lending Strategy Total Assets:", lendingStrategyAssets);
+      console.log("Staking Strategy Total Assets:", stakingStrategyAssets);
+      console.log("Liquidity Strategy Total Assets:", liquidityStrategyAssets);
+    } catch (err) {
+      console.error("Failed to get Lending Strategy:", err);
+    }
+  }
+
+  const mintToStrategy = async () => {
+  try {
+    const lending = await writeContract(config, {
+      address: VUSDT_ADDRESS,
+      abi: VUSDT_ABI,
+      functionName: "mint",
+      args: [LENDING_STRATEGY_ADDRESS, 1_000_000 * 1e18],
+      account: address,
+      gas: 12_000_000n,
+    });
+    // const staking = await writeContract(config, {
+    //   address: VUSDT_ADDRESS,
+    //   abi: VUSDT_ABI,
+    //   functionName: "mint",
+    //   args: [STAKING_STRATEGY_ADDRESS, 1_000_000 * 1e18],
+    //   account: address,
+    //   gas: 12_000_000n,
+    // });
+    // const liquidity = await writeContract(config, {
+    //   address: VUSDT_ADDRESS,
+    //   abi: VUSDT_ABI,
+    //   functionName: "mint",
+    //   args: [LIQUIDITY_STRATEGY_ADDRESS, 1_000_000 * 1e18],
+    //   account: address,
+    //   gas: 12_000_000n,
+    // });
+
+    const receipt = await waitForTransactionReceipt(config, { hash: lending });
+    console.log("Transaction confirmed:", receipt);
+
+    console.log("Minted to strategies:", lending );
+  } catch (err) {
+    console.error("Failed to update allocation:", err);
+  }
+};
+
+const mintToPirkya = async () => {
+  try {
+    const txHash = await writeContract(config, {
+      address: VUSDT_ADDRESS,
+      abi: VUSDT_ABI,
+      functionName: "mint",
+      args: ["0x023f2E70A25d7EBEca8d62De747dC5C7d2339944", 5_000_000 * 1e18],
+      account: address,
+      gas: 12_000_000n, // manually set (below 16,777,216)
+    });
+
+    console.log("Mint to Pirkya tx:", txHash);
+
+    const receipt = await waitForTransactionReceipt(config, { hash: txHash });
+    console.log("Transaction confirmed:", receipt);
+  } catch (err) {
+    console.error("Failed to mint to Pirkya:", err);
+  }
+}
  
+
+  const rebalance = async () => {
+  try {
+    const txHash = await writeContract(config, {
+      address: YIELD_VAULT_ADDRESS,
+      abi: YIELD_VAULT_ABI,
+      functionName: "rebalance",
+      account: address,
+      gas: 12_000_000n, // manually set (below 16,777,216)
+    });
+
+    console.log("Rebalance tx:", txHash);
+
+    const receipt = await waitForTransactionReceipt(config, { hash: txHash });
+    console.log("Transaction confirmed:", receipt);
+  } catch (err) {
+    console.error("Failed to update allocation:", err);
+  }
+};
+
+  const harvestAll = async () => {
+  try {
+    const txHash = await writeContract(config, {
+      address: YIELD_VAULT_ADDRESS,
+      abi: YIELD_VAULT_ABI,
+      functionName: "harvestAll",
+      account: address,
+      gas: 12_000_000n, // manually set (below 16,777,216)
+    });
+
+    console.log("Rebalance tx:", txHash);
+
+    const receipt = await waitForTransactionReceipt(config, { hash: txHash });
+    console.log("Transaction confirmed:", receipt);
+  } catch (err) {
+    console.error("Failed to update allocation:", err);
+  }
+};
 
   return (
     <DefaultLayout>
-      <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
+      <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10 mt-26">
         <h1 className={title()}>Dev Page</h1>
         <h3>{address || "Connect your wallet"}</h3>
 
@@ -200,7 +334,27 @@ export default function DocsPage() {
         >
           Load Balances
         </button>
+
+        <Button onClick={getLendingStrategy}>
+          Get All total Assets
+        </Button>
+
+      <Button onClick={rebalance}>
+        Rebalance
+      </Button>
+
+      <Button onClick={harvestAll}>
+        Harvest All
+      </Button>
+
       
+      <Button onClick={mintToStrategy}>
+        Mint to Strategies
+      </Button>
+
+      <Button onClick={mintToPirkya}>
+        Mint to Pirkya
+      </Button>
 
       </section>
     </DefaultLayout>

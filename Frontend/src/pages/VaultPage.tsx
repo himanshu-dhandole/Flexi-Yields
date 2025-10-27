@@ -88,7 +88,7 @@ export default function VaultPage() {
       const tx = await writeContract(config, {
         address: VUSDT_ADDRESS,
         abi: VUSDT_ABI,
-        functionName: "limitedMint",
+        functionName: "airdrop",
         args: [],
       });
 
