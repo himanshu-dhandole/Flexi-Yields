@@ -296,6 +296,21 @@ const mintToPirkya = async () => {
   }
 };
 
+const getVaultStats = async () => {
+    try {
+      const totalAssets = await readContract(config, {
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "getVaultStats",
+        account: address,
+      }) ;
+
+      console.log("Yield Vault Total Assets:", totalAssets);
+    } catch (err) {
+      console.error("Failed to get Vault Stats:", err);
+    }
+  }
+
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10 mt-26">
@@ -354,6 +369,10 @@ const mintToPirkya = async () => {
 
       <Button onClick={mintToPirkya}>
         Mint to Pirkya
+      </Button>
+
+      <Button onClick={getVaultStats}>
+        Get Vault Stats
       </Button>
 
       </section>
