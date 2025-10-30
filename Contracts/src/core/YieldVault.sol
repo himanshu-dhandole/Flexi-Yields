@@ -226,8 +226,8 @@
                 try IStrategy(strategy).balanceOf() returns (uint256 strategyBalance) {
                     if (strategyBalance > 0) {
                         uint256 toWithdraw = remaining > strategyBalance ? strategyBalance : remaining;
-                        
-                        try IStrategy(strategy).withdraw(toWithdraw, msg.sender, owner()) returns (uint256 withdrawn) {
+
+                        try IStrategy(strategy).withdraw(toWithdraw, address(this), owner()) returns (uint256 withdrawn) {
                             remaining -= withdrawn;
                         } catch {
                             // Skip strategy if withdraw fails
@@ -241,7 +241,7 @@
             }
         }
         
-        require(remaining == 0 || remaining < amount, "YieldVault: Insufficient liquidity");
+        require(remaining < amount, "YieldVault: Insufficient liquidity");
     }
     
     function harvestAll() external onlyOwner returns (uint256) {
