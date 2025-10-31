@@ -38,6 +38,9 @@ export default function VaultPage() {
   const [hideBalances, setHideBalances] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [actionType, setActionType] = useState<"deposit" | "withdraw">("deposit");
+    const [apy , setApy] = useState<string | null>(null);
+    const [flexCoin , setFlexCoin] = useState<string | null>(null);
+    const [AmountInStrategy , setAmountInStrategy] = useState<string | null>(null);
 
   const loadVaultBalances = async () => {
     if (!address) return;
@@ -58,7 +61,23 @@ export default function VaultPage() {
         args: [address],
       }) as bigint;
 
+      
+      const apyResult = await readContract(config, {
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "estimatedVaultAPY",
+      }) as bigint;
+
+      const flexCoinResult = await readContract(config, {
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "balanceOf",
+        args: [address],
+      }) as bigint;
+
+      setApy(formatUnits(apyResult, 2));
       setVusdtBalance(formatUnits(balance, 18));
+      setFlexCoin(Number(formatUnits(flexCoinResult, 18)).toFixed(2));
     } catch (err) {
       console.error(err);
       toast.error("Failed to load vault balances.");
@@ -170,6 +189,7 @@ export default function VaultPage() {
     }
   };
 
+
   useEffect(() => {
     if (address) loadVaultBalances();
   }, [address]);
@@ -231,11 +251,13 @@ export default function VaultPage() {
                 <div className="grid grid-cols-3 gap-3 mb-6 pb-6 border-b border-divider">
                   <div>
                     <p className="text-xs text-foreground-400 mb-1">APY</p>
-                    <p className="text-lg font-medium text-emerald-500">5.2%</p>
+                    <p className="text-lg font-medium text-emerald-500">{apy || 0.00}%</p>
                   </div>
                   <div>
-                    <p className="text-xs text-foreground-400 mb-1">Earned</p>
-                    <p className="text-lg font-medium text-foreground">$0.00</p>
+                    <p className="text-xs text-foreground-400 mb-1">
+                      <span className="text-yellow-400 font-medium">$FLEX</span>
+                    </p>
+                    <p className="text-lg font-medium text-foreground">{flexCoin || 0.00}</p>
                   </div>
                   <div>
                     <p className="text-xs text-foreground-400 mb-1">TVL</p>

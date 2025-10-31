@@ -36,6 +36,9 @@ export default function DocsPage() {
   const [strategyInfo, setStrategyInfo] = useState<any>(null);
   const [flexBalance, setFlexBalance] = useState<any>(null);
   const [vaultDetails, setVaultDetails] = useState<any>(null);
+  const [apy , setApy] = useState<string | null>(null);
+  const [flexCoin , setFlexCoin] = useState<string | null>(null);
+  const [AmountInStrategy , setAmountInStrategy] = useState<string | null>(null);
 
   const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
   const YIELD_VAULT_ADDRESS = import.meta.env
@@ -182,7 +185,7 @@ export default function DocsPage() {
         abi: VUSDT_ABI,
         functionName: "mint",
         args: [
-          "0x2a3D206626337FcAC4C5Cfc0f9fBe18F9D900f47",
+          "0xD462730DB95340839617473f0D952dfBF2bf2006",
           5_000_000n * BigInt(1e18),
         ],
         account: address,
@@ -407,8 +410,8 @@ export default function DocsPage() {
       const txn = await writeContract(config, {
         address: YIELD_VAULT_ADDRESS,
         abi: YIELD_VAULT_ABI,
-        functionName: "emergencyWithdrawAll",
-        // args: [100 * 1e18 , address, address],
+        functionName: "redeem",
+        args: [100*1e18, address , address],
         account: address,
         gas: 12_000_000n,
       });
@@ -416,8 +419,24 @@ export default function DocsPage() {
       console.log("Redeem tx:", txn);
       const receipt = await waitForTransactionReceipt(config, { hash: txn });
       console.log("Transaction confirmed:", receipt);
-    } catch {
-      console.error("Failed to redeem vUSDT");
+    } catch (e){
+      console.error("Failed to redeem vUSDT" , e);
+    }
+  }
+
+  const paisaHaiKya = async() => {
+    if(!address) return ;
+    try {
+      const amountInStrategy = await readContract(config, {
+        address: VUSDT_ADDRESS,
+        abi: VUSDT_ABI,
+        functionName: "balanceOf",
+        args: ["0x7083674E2355799D333ECeE17E7670e594203f3d"],
+      });
+
+      console.log("Amount in strategy:", amountInStrategy);
+    } catch (error) {
+      console.error("Failed to fetch amount in strategy:", error);
     }
   }
 
@@ -496,6 +515,10 @@ export default function DocsPage() {
 
           <Button onClick={reedem} disabled={!address || loading}>
             Redeem 100 vUSDT
+          </Button>
+
+          <Button onClick={paisaHaiKya} disabled={!address || loading}>
+            Amount in Strategy
           </Button>
         </div>
 
@@ -681,7 +704,7 @@ export default function DocsPage() {
                           <span>{addr}</span>
                           <span>
                             {vaultDetails.strategyAPYs[1][i]
-                              ? `${Number(vaultDetails.strategyAPYs[1][i]) / 10}%`
+                              ? `${Number(vaultDetails.strategyAPYs[1][i]) / 100}%`
                               : "N/A"}
                           </span>
                         </div>
