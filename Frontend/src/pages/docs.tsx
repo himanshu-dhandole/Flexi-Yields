@@ -16,7 +16,7 @@ import LIQUIDITY_STRATEGY_ABI from "../abis/liquidityStrategy.json";
 import STAKING_STRATEGY_ABI from "../abis/stakingStrategy.json";
 import { config } from "@/config/wagmiConfig";
 import { Button } from "@heroui/button";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 
 export default function DocsPage() {
   const { address } = useAccount();
@@ -36,9 +36,9 @@ export default function DocsPage() {
   const [strategyInfo, setStrategyInfo] = useState<any>(null);
   const [flexBalance, setFlexBalance] = useState<any>(null);
   const [vaultDetails, setVaultDetails] = useState<any>(null);
-  const [apy , setApy] = useState<string | null>(null);
-  const [flexCoin , setFlexCoin] = useState<string | null>(null);
-  const [AmountInStrategy , setAmountInStrategy] = useState<string | null>(null);
+  const [apy, setApy] = useState<string | null>(null);
+  const [flexCoin, setFlexCoin] = useState<string | null>(null);
+  const [AmountInStrategy, setAmountInStrategy] = useState<string | null>(null);
 
   const VUSDT_ADDRESS = import.meta.env.VITE_VUSDT_ADDRESS as `0x${string}`;
   const YIELD_VAULT_ADDRESS = import.meta.env
@@ -405,27 +405,30 @@ export default function DocsPage() {
   };
 
   const reedem = async () => {
-    if(!address) return ;
+    if (!address) return;
     try {
-      const txn = await writeContract(config, {
+      const shares = parseUnits("100", 18);
+
+      const txHash = await writeContract(config, {
         address: YIELD_VAULT_ADDRESS,
         abi: YIELD_VAULT_ABI,
         functionName: "redeem",
-        args: [100*1e18, address , address],
+        args: [shares, address, address],
         account: address,
         gas: 12_000_000n,
       });
 
-      console.log("Redeem tx:", txn);
-      const receipt = await waitForTransactionReceipt(config, { hash: txn });
-      console.log("Transaction confirmed:", receipt);
-    } catch (e){
-      console.error("Failed to redeem vUSDT" , e);
-    }
-  }
+      console.log("Redeem tx:", txHash);
 
-  const paisaHaiKya = async() => {
-    if(!address) return ;
+      const receipt = await waitForTransactionReceipt(config, { hash: txHash });
+      console.log("Transaction confirmed:", receipt);
+    } catch (e) {
+      console.error("Failed to redeem FLEX:", e);
+    }
+  };
+
+  const paisaHaiKya = async () => {
+    if (!address) return;
     try {
       const amountInStrategy = await readContract(config, {
         address: VUSDT_ADDRESS,
@@ -438,7 +441,23 @@ export default function DocsPage() {
     } catch (error) {
       console.error("Failed to fetch amount in strategy:", error);
     }
-  }
+  };
+
+  const previewRedeem = async () => {
+    if (!address) return;
+    try {
+      const previewRedeem = await readContract(config, {
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "previewRedeem",
+        args: [100 * 1e18],
+      });
+
+      console.log("Preview Redeem:", previewRedeem);
+    } catch (error) {
+      console.error("Failed to fetch preview redeem:", error);
+    }
+  };
 
   return (
     <DefaultLayout>
@@ -519,6 +538,10 @@ export default function DocsPage() {
 
           <Button onClick={paisaHaiKya} disabled={!address || loading}>
             Amount in Strategy
+          </Button>
+
+          <Button onClick={previewRedeem} disabled={!address || loading}>
+            Preview Redeem 100 vUSDT
           </Button>
         </div>
 
