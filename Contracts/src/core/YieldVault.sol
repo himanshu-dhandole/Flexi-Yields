@@ -129,29 +129,36 @@ contract YieldVault is ERC4626, Ownable, ReentrancyGuard, Pausable {
     ) public override nonReentrant returns (uint256) {
         require(shares > 0, "YieldVault: Cannot redeem 0");
 
-        uint256 available = IERC20(asset()).balanceOf(address(this));
         uint256 expectedAssets = previewRedeem(shares);
+        uint256 available = IERC20(asset()).balanceOf(address(this));
+
         if (available < expectedAssets) {
             _withdrawFromStrategies(expectedAssets - available);
+            available = IERC20(asset()).balanceOf(address(this));
         }
 
-        // Pull actual assets
-        uint256 actualAssets = super.redeem(shares, address(this), owner);
+        // Check available liquidity again
+        uint256 redeemable = available < expectedAssets
+            ? available
+            : expectedAssets;
+        require(redeemable > 0, "YieldVault: Insufficient liquidity");
 
-        // Compute fee from actual redeemed amount
-        uint256 fee = (actualAssets * withdrawalFee) / BASIS_POINTS;
-        uint256 assetsAfterFee = actualAssets - fee;
+        // Burn shares directly instead of using super.redeem()
+        _burn(owner, shares);
 
-        // Distribute
+        uint256 fee = (redeemable * withdrawalFee) / BASIS_POINTS;
+        uint256 assetsAfterFee = redeemable - fee;
+
         if (fee > 0 && feeRecipient != address(0)) {
             IERC20(asset()).safeTransfer(feeRecipient, fee);
             emit FeesCollected(fee, "withdrawal");
         }
 
         IERC20(asset()).safeTransfer(receiver, assetsAfterFee);
-        emit Withdrawn(receiver, assetsAfterFee, shares);
 
-        totalWithdrawn += actualAssets;
+        emit Withdrawn(receiver, assetsAfterFee, shares);
+        totalWithdrawn += redeemable;
+
         return assetsAfterFee;
     }
 
