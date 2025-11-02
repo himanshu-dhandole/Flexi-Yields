@@ -407,7 +407,7 @@ export default function DocsPage() {
   const reedem = async () => {
     if (!address) return;
     try {
-      const shares = parseUnits("100", 18);
+      const shares = parseUnits("9899.9959167626996", 18);
 
       const txHash = await writeContract(config, {
         address: YIELD_VAULT_ADDRESS,

@@ -4,6 +4,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Book, FacebookIcon, InstagramIcon, XIcon } from "lucide-react";
 import { GithubIcon, TwitterIcon } from "@/components/icons";
+import { Header } from "@/components/header-2";
 const socialLinksData = [
   { label: "Github", href: "#", icon: <GithubIcon /> },
   { label: "Instagram", href: "#", icon: <InstagramIcon /> },
@@ -31,8 +32,9 @@ export default function DefaultLayout({
 }) {
   return (
     <div className="relative flex flex-col h-screen ">
-      <Navbar />
-      <main className="w-full flex-grow -mt-16">{children}</main>
+      {/* <Navbar /> */}
+      <Header />
+      <main className="w-full flex-grow -mt-36">{children}</main>
       <Footer
         logoSrc="https://i.ibb.co/wrF16VDS/Screenshot-2025-10-27-004851.png"
         onSubscribe={handleNewsletterSubscribe}
