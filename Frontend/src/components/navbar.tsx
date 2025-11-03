@@ -1,30 +1,42 @@
-import { Kbd } from "@heroui/kbd";
-import { Link } from "@heroui/link";
-import { Input } from "@heroui/input";
+"use client";
+
 import {
   Navbar as HeroUINavbar,
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  NavbarMenuToggle,
-  NavbarMenu,
-  NavbarMenuItem,
 } from "@heroui/navbar";
-import { link as linkStyles } from "@heroui/theme";
-import clsx from "clsx";
-
-import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
-import {
-  TwitterIcon,
-  GithubIcon,
-  DiscordIcon,
-  SearchIcon,
-} from "@/components/icons";
-import { Logo } from "@/components/icons";
-import { ConnectButton } from "thirdweb/react";
-import { client } from "@/config/thirdwebConfig";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { InfinityIcon, Menu } from "lucide-react";
 import { createWallet } from "thirdweb/wallets";
+import { client } from "@/config/thirdwebConfig";
+import { ConnectButton } from "thirdweb/react";
+import { Link } from "react-router-dom";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { useEffect, useState } from "react";
+
+// custom theme hook
+function useTheme() {
+  const [theme, setTheme] = useState(
+    document.documentElement.classList.contains("dark") ? "dark" : "light"
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setTheme(
+        document.documentElement.classList.contains("dark") ? "dark" : "light"
+      );
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return { theme, isDark: theme === "dark" };
+}
 
 export const Navbar = () => {
   const wallets = [
@@ -34,109 +46,109 @@ export const Navbar = () => {
     createWallet("io.rabby"),
     createWallet("io.zerion.wallet"),
   ];
-  
+
+  const { theme } = useTheme(); // custom hook here
+
+  const navigationItems = [
+    { title: "HOME", href: "/" },
+    { title: "VAULT", href: "/vault" },
+    { title: "POOLS", href: "/pools" },
+    { title: "ADMIN", href: "/docs" },
+    { title: "CONTACT", href: "/contact" },
+  ];
+
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
-      <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarBrand className="gap-3 max-w-fit pr-2">
-          <Link
-            className="flex justify-start items-center gap-1"
-            color="foreground"
-            href="/"
-          >
-            <img src=".\src\lib\logo1.png" className="pr-2" alt="Flexi Yield Logo" width={40} height={40} />
-            <p className="font-bold text-inherit">FLEXI YIELD</p>
-          </Link>
-        </NavbarBrand>
-        <div className="hidden lg:flex gap-4 justify-start ml-2">
-          {siteConfig.navItems.map((item) => (
-            <NavbarItem key={item.href}>
-              <Link
-                className={clsx(
-                  linkStyles({ color: "foreground" }),
-                  "data-[active=true]:text-primary data-[active=true]:font-medium"
-                )}
-                color="foreground"
-                href={item.href}
-              >
-                {item.label}
-              </Link>
-            </NavbarItem>
-          ))}
-        </div>
+    <HeroUINavbar maxWidth="xl" className="border-b border-default-200">
+      <NavbarBrand className="flex items-center gap-2">
+        <Link to={"/"}>
+        <InfinityIcon className="h-8 w-8 text-[#FF6B2C]" /></Link>
+        <Link to={"/"}><span className="font-mono text-xl font-bold">FLEXI YIELD</span></Link>
+      </NavbarBrand>
+
+      <NavbarContent className="hidden md:flex" justify="center">
+        {navigationItems.map((item) => (
+          <NavbarItem key={item.title}>
+            <Link
+              to={item.href}
+              className="text-sm font-mono text-foreground hover:text-[#FF6B2C] transition-colors"
+            >
+              {item.title}
+            </Link>
+          </NavbarItem>
+        ))}
       </NavbarContent>
 
-      <NavbarContent
-        className="hidden sm:flex basis-1/5 sm:basis-full"
-        justify="end"
-      >
-        <NavbarItem className="hidden sm:flex gap-2">
-          <Link isExternal href={siteConfig.links.twitter} title="Twitter">
-            <TwitterIcon className="text-default-500" />
-          </Link>
-          <Link isExternal href={siteConfig.links.discord} title="Discord">
-            <DiscordIcon className="text-default-500" />
-          </Link>
-          <Link isExternal href={siteConfig.links.github} title="GitHub">
-            <GithubIcon className="text-default-500" />
-          </Link>
-          <ThemeSwitch />
-        </NavbarItem>
-        <NavbarItem className="hidden md:flex">
-            {/* <WalletConnectButton /> */}
-            <ConnectButton
-                    client={client}
-                    wallets={wallets}
-                    theme="dark"
-                    connectButton={{
-                      label: "Connect",
-                      style: {
-                        backgroundColor: "#242424ff",
-                        borderRadius: "8px",
-                        fontWeight: "400",
-                        transition: "all 0.3s ease",
-                        color: "#fff",
-                      },
-                    }}
-                    connectModal={{
-                      title: "Select a Wallet",
-                      showThirdwebBranding: false,
-                      termsOfServiceUrl: "/terms",
-                      privacyPolicyUrl: "/privacy",
-                    }}
-                  />
-        </NavbarItem>
-      </NavbarContent>
-
-      <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-        <Link isExternal href={siteConfig.links.github}>
-          <GithubIcon className="text-default-500" />
-        </Link>
+      <NavbarContent justify="end" className="items-center space-x-4">
         <ThemeSwitch />
-        <NavbarMenuToggle />
-      </NavbarContent>
 
-      <NavbarMenu>
-        <div className="mx-4 mt-2 flex flex-col gap-2">
-          {siteConfig.navMenuItems.map((item, index) => (
-            <NavbarMenuItem key={`${item}-${index}`}>
-              <Link
-                color={
-                  index === 2
-                    ? "primary"
-                    : index === siteConfig.navMenuItems.length - 1
-                      ? "danger"
-                      : "foreground"
-                }
-                href="#"
-                size="lg"
-              >
-                {item.label}
-              </Link>
-            </NavbarMenuItem>
-          ))}
-        </div>
-      </NavbarMenu>
+        <ConnectButton
+          client={client}
+          wallets={wallets}
+          theme={theme === "dark" ? "dark" : "light"}
+          connectButton={{
+            label: "Connect Wallet",
+            style: {
+              all: "unset",
+              cursor: "pointer",
+              backgroundColor: "#FF6B2C",
+              color: "white",
+              padding: "8px 14px",
+              borderRadius: "0",
+              fontFamily: "monospace",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            },
+          }}
+        />
+
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+
+          <SheetContent>
+            <nav className="flex flex-col gap-6 mt-6">
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.title}
+                  to={item.href}
+                  className="text-sm font-mono text-foreground hover:text-[#FF6B2C] transition-colors"
+                >
+                  {item.title}
+                </Link>
+              ))}
+
+              <div className="mt-4 flex flex-col gap-4">
+                <ThemeSwitch />
+                <ConnectButton
+                  client={client}
+                  wallets={wallets}
+                  theme={theme === "dark" ? "dark" : "light"}
+                  connectButton={{
+                    label: "Connect Wallet",
+                    style: {
+                      all: "unset",
+                      cursor: "pointer",
+                      backgroundColor: "#FF6B2C",
+                      color: "white",
+                      padding: "10px",
+                      borderRadius: "0",
+                      fontFamily: "monospace",
+                      fontSize: "14px",
+                      textAlign: "center",
+                    },
+                  }}
+                />
+              </div>
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </NavbarContent>
     </HeroUINavbar>
   );
 };
