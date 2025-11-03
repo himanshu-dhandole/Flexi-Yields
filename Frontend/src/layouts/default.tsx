@@ -32,11 +32,11 @@ export default function DefaultLayout({
 }) {
   return (
     <div className="relative flex flex-col h-screen ">
-      {/* <Navbar /> */}
-      <Header />
-      <main className="w-full flex-grow -mt-36">{children}</main>
+      <Navbar />
+      {/* <Header /> */}
+      <main className="w-full flex-grow">{children}</main>
       <Footer
-        logoSrc="https://i.ibb.co/wrF16VDS/Screenshot-2025-10-27-004851.png"
+        logoSrc="https://image2url.com/images/1762181933383-8d3cf2c1-eccb-426a-a0fe-32dcb3a1562e.png"
         onSubscribe={handleNewsletterSubscribe}
         socialLinks={socialLinksData}
       />

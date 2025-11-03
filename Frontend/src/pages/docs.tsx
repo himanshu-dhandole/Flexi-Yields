@@ -384,6 +384,7 @@ export default function DocsPage() {
         }),
       ]);
 
+
       setVaultDetails({
         totalAssets: formatUnits(totalAssets as bigint, 18),
         vaultStats,
@@ -398,6 +399,7 @@ export default function DocsPage() {
         totalDep,
         totalWdr,
       });
+      console.log("Vault Details:", vaultDetails);
     } catch (err) {
       console.error("Failed to fetch vault details:", err);
       setError("Failed to load vault view data");

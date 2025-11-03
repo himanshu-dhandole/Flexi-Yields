@@ -1,7 +1,9 @@
 import React, { useState, type FC, type ReactNode } from 'react';
-import { cn } from '@/lib/utils'; // Assumes you have a `cn` utility
-import { Input } from '@/components/ui/input'; // Assumes shadcn Input
-import { Button } from '@/components/ui/button'; // Assumes shadcn Button
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 
 /**
  * Props for the Footer component.
@@ -24,25 +26,25 @@ interface FooterProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 /**
- * A responsive and theme-adaptive footer component with a newsletter subscription form.
- * Designed following shadcn/ui and 21st.dev best practices.
+ * A minimal, tech-focused footer component with sharp edges and monospace typography.
+ * Follows the DeFi aesthetic with orange accents and clean borders.
  */
 export const Footer: FC<FooterProps> = ({
   logoSrc,
   companyName = 'FLEXI YIELD',
   description = 'Your gateway to flexible DeFi yield solutions. Empowering your crypto assets with innovative strategies.',
   usefulLinks = [
-    { label: 'Products', href: '#' },
-    { label: 'Careers', href: '#' },
-    { label: 'Contact Us', href: '#' },
-    { label: 'Privacy Policy', href: '#' },
+    { label: 'PRODUCTS', href: '#' },
+    { label: 'CAREERS', href: '#' },
+    { label: 'CONTACT US', href: '#' },
+    { label: 'PRIVACY POLICY', href: '#' },
   ],
   socialLinks = [
-    { label: 'Facebook', href: '#', icon: <DummyIcon /> },
-    { label: 'Instagram', href: '#', icon: <DummyIcon /> },
-    { label: 'Twitter (X)', href: '#', icon: <DummyIcon /> },
+    { label: 'FACEBOOK', href: '#', icon: <DummyIcon /> },
+    { label: 'INSTAGRAM', href: '#', icon: <DummyIcon /> },
+    { label: 'TWITTER (X)', href: '#', icon: <DummyIcon /> },
   ],
-  newsletterTitle = 'Subscribe our newsletter',
+  newsletterTitle = 'SUBSCRIBE OUR NEWSLETTER',
   onSubscribe,
   className,
   ...props
@@ -72,91 +74,192 @@ export const Footer: FC<FooterProps> = ({
   };
 
   return (
-    <footer className={cn('bg-muted/50 text-foreground', className)} {...props}>
-      <div className="container mx-auto grid grid-cols-1 gap-8 px-4 py-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
-        {/* Company Info */}
-        <div className="flex flex-col items-start gap-4">
-          <div className="flex items-center gap-3">
-            <img src={logoSrc} alt={`${companyName} Logo`} className="h-10 w-10 rounded-full" />
-            <span className="text-xl font-bold">{companyName}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
+    <footer 
+      className={cn('border-t border-[#FF6B2C]/20 bg-background text-foreground', className)} 
+      {...props}
+    >
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
+          
+          {/* Company Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col gap-6"
+          >
+            <div className="flex items-center gap-3">
+              <div >
+                <img 
+                  src={logoSrc} 
+                  alt={`${companyName} Logo`} 
+                  className="h-10 w-10 object-contain" 
+                />
+              </div>
+              <span className="text-xl font-mono font-bold">{companyName}</span>
+            </div>
+            <p className="text-sm font-mono text-muted-foreground leading-relaxed">
+              {description}
+            </p>
+          </motion.div>
 
-        {/* Useful Links */}
-        <div className="md:justify-self-center">
-          <h3 className="mb-4 text-base font-semibold">Useful Link</h3>
-          <ul className="space-y-2">
-            {usefulLinks.map((link) => (
-              <li key={link.label}>
-                <a
-                  href={link.href}
-                  className="text-sm text-muted-foreground transition-colors hover:text-primary"
+          {/* Useful Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="md:justify-self-center"
+          >
+            <h3 className="mb-6 text-sm font-mono font-bold text-[#FF6B2C]">
+              USEFUL LINKS
+            </h3>
+            <ul className="space-y-3">
+              {usefulLinks.map((link, index) => (
+                <motion.li
+                  key={link.label}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  <a
+                    href={link.href}
+                    className="text-sm font-mono text-muted-foreground transition-colors hover:text-[#FF6B2C] flex items-center gap-2 group"
+                  >
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    {link.label}
+                  </a>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
 
-        {/* Follow Us */}
-        <div className="md:justify-self-center">
-          <h3 className="mb-4 text-base font-semibold">Follow Us</h3>
-          <ul className="space-y-2">
-            {socialLinks.map((link) => (
-              <li key={link.label}>
-                <a
-                  href={link.href}
-                  aria-label={link.label}
-                  className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+          {/* Follow Us */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="md:justify-self-center"
+          >
+            <h3 className="mb-6 text-sm font-mono font-bold text-[#FF6B2C]">
+              FOLLOW US
+            </h3>
+            <ul className="space-y-3">
+              {socialLinks.map((link, index) => (
+                <motion.li
+                  key={link.label}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  {link.icon}
-                  <span>{link.label}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  <a
+                    href={link.href}
+                    aria-label={link.label}
+                    className="flex items-center gap-3 text-sm font-mono text-muted-foreground transition-colors hover:text-[#FF6B2C] group"
+                  >
+                    <span className="group-hover:text-[#FF6B2C] transition-colors">
+                      {link.icon}
+                    </span>
+                    <span>{link.label}</span>
+                  </a>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
 
-        {/* Newsletter */}
-        <div>
-          <h3 className="mb-4 text-base font-semibold">{newsletterTitle}</h3>
-          <form onSubmit={handleSubscribe} className="relative w-full max-w-sm">
-            <div className="relative">
-              <Input
-                type="email"
-                placeholder="Your email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSubmitting || subscriptionStatus !== 'idle'}
-                required
-                aria-label="Email for newsletter"
-                className="pr-28"
-              />
-              <Button
+          {/* Newsletter */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <h3 className="mb-6 text-sm font-mono font-bold text-[#FF6B2C]">
+              {newsletterTitle}
+            </h3>
+            <form onSubmit={handleSubscribe} className="relative">
+              <div className="relative border border-[#FF6B2C]/20 overflow-hidden">
+                <input
+                  type="email"
+                  placeholder="YOUR EMAIL ADDRESS"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting || subscriptionStatus !== 'idle'}
+                  required
+                  aria-label="Email for newsletter"
+                  className="w-full bg-transparent px-4 py-3 font-mono text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+                />
+              </div>
+              <button
                 type="submit"
                 disabled={isSubmitting || subscriptionStatus !== 'idle'}
-                className="absolute right-0 top-0 h-full rounded-l-none px-4"
+                className="mt-3 w-full bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white font-mono text-sm py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-              </Button>
-            </div>
-            {/* Advanced Animation Overlay */}
-            {(subscriptionStatus === 'success' || subscriptionStatus === 'error') && (
-              <div
-                key={subscriptionStatus} // Re-trigger animation on status change
-                className="animate-in fade-in absolute inset-0 flex items-center justify-center rounded-lg bg-background/80 text-center backdrop-blur-sm"
-              >
-                {subscriptionStatus === 'success' ? (
-                  <span className="font-semibold text-green-500">Subscribed! 🎉</span>
+                {isSubmitting ? (
+                  'SUBSCRIBING...'
                 ) : (
-                  <span className="font-semibold text-destructive">Failed. Try again.</span>
+                  <>
+                    SUBSCRIBE
+                    <ArrowRight size={16} />
+                  </>
                 )}
-              </div>
-            )}
-          </form>
+              </button>
+
+              {/* Status Message */}
+              {subscriptionStatus !== 'idle' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={cn(
+                    'mt-3 flex items-center gap-2 border p-3 font-mono text-xs',
+                    subscriptionStatus === 'success' 
+                      ? 'border-green-500/20 bg-green-500/5 text-green-500' 
+                      : 'border-red-500/20 bg-red-500/5 text-red-500'
+                  )}
+                >
+                  {subscriptionStatus === 'success' ? (
+                    <>
+                      <CheckCircle size={16} />
+                      <span>SUBSCRIBED SUCCESSFULLY!</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle size={16} />
+                      <span>SUBSCRIPTION FAILED. TRY AGAIN.</span>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </form>
+          </motion.div>
         </div>
+
+        {/* Bottom Bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-16 pt-8 border-t border-[#FF6B2C]/20"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-xs font-mono text-muted-foreground">
+              © {new Date().getFullYear()} {companyName}. ALL RIGHTS RESERVED.
+            </p>
+            <div className="flex gap-6">
+              <a 
+                href="#" 
+                className="text-xs font-mono text-muted-foreground hover:text-[#FF6B2C] transition-colors"
+              >
+                TERMS OF SERVICE
+              </a>
+              <a 
+                href="#" 
+                className="text-xs font-mono text-muted-foreground hover:text-[#FF6B2C] transition-colors"
+              >
+                PRIVACY POLICY
+              </a>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </footer>
   );
@@ -174,7 +277,7 @@ const DummyIcon: FC = () => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="h-5 w-5 text-muted-foreground"
+    className="h-5 w-5"
   >
     <circle cx="12" cy="12" r="10" />
     <circle cx="12" cy="12" r="4" />

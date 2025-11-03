@@ -58,7 +58,7 @@ export const Navbar = () => {
   ];
 
   return (
-    <HeroUINavbar maxWidth="xl" className="border-b border-default-200">
+    <HeroUINavbar maxWidth="xl" className=" border-default-200">
       <NavbarBrand className="flex items-center gap-2">
         <Link to={"/"}>
         <InfinityIcon className="h-8 w-8 text-[#FF6B2C]" /></Link>
