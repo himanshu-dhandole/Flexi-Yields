@@ -1,6 +1,6 @@
 import { Brain, TrendingUp, Shield, Zap, ArrowRight, Activity, Target } from 'lucide-react';
 import DefaultLayout from '@/layouts/default';
-import Web3HeroSection from '@/components/web3-hero-section';
+import { MynaHero } from '@/components/myna-hero';
 
 export default function HeroPage() {
   const metrics = [
@@ -11,8 +11,8 @@ export default function HeroPage() {
 
   return (
     <DefaultLayout>
-      <div className='pt-16'>
-      <Web3HeroSection/>
+      <div className='-pt-6'>
+      <MynaHero />
       </div>
     </DefaultLayout>
   );
