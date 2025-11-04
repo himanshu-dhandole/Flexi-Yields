@@ -58,18 +58,18 @@ export default function VaultPage() {
   const [apy, setApy] = useState<string | null>(null);
   const [flexCoin, setFlexCoin] = useState<string | null>(null);
   const [AssetsHeldByUser, setAssetsHeldByUser] = useState<string | null>(null);
+  const [pricePerShare, setPricePerShare] = useState<string>("0");
 
   const loadVaultBalances = async () => {
     if (!address) return;
     try {
       const vaultResult = (await readContract(config, {
-  address: YIELD_VAULT_ADDRESS,
-  abi: YIELD_VAULT_ABI,
-  functionName: "getVaultStats",
-})) as [bigint, bigint, bigint, bigint]; // tuple: [totalDeposited, totalWithdrawn, totalAssets, totalShares]
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "getVaultStats",
+      })) as [bigint, bigint, bigint, bigint]; // tuple: [totalDeposited, totalWithdrawn, totalAssets, totalShares]
 
-setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
-
+      setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
 
       const balance = (await readContract(config, {
         address: VUSDT_ADDRESS,
@@ -77,6 +77,15 @@ setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
         functionName: "balanceOf",
         args: [address],
       })) as bigint;
+
+      const pricePerShareResult = (await readContract(config, {
+        address: YIELD_VAULT_ADDRESS,
+        abi: YIELD_VAULT_ABI,
+        functionName: "convertToAssets",
+        args: [1 * 1e18],
+      })) as bigint;
+
+      setPricePerShare(Number(formatUnits(pricePerShareResult, 18)).toFixed(2));
 
       const apyResult = (await readContract(config, {
         address: YIELD_VAULT_ADDRESS,
@@ -90,7 +99,7 @@ setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
         functionName: "balanceOf",
         args: [address],
       })) as bigint;
-       setFlexCoin(Number(formatUnits(flexCoinResult, 18)).toFixed(2));
+      setFlexCoin(Number(formatUnits(flexCoinResult, 18)).toFixed(2));
 
       const assets = (await readContract(config, {
         address: YIELD_VAULT_ADDRESS,
@@ -242,21 +251,7 @@ setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
     }
   };
 
-  // const convertToAssets = async () => {
-  //   if (!address || flexCoin == null) return; // guard against null or undefined
-  //   try {
-  //     const amount = parseUnits(flexCoin.toString(), 18);
-  //     const res = await readContract(config, {
-  //       address: YIELD_VAULT_ADDRESS,
-  //       abi: YIELD_VAULT_ABI,
-  //       functionName: "convertToAssets",
-  //       args: [amount],
-  //     }) as bigint;
-  //     setAssetsHeldByUser(Number(formatUnits(res, 18)).toFixed(2));
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // };
+ 
 
   useEffect(() => {
     if (address) loadVaultBalances();
@@ -353,9 +348,11 @@ setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
               className="border border-[#FF6B2C]/20 p-6"
             >
               <p className="text-xs font-mono text-muted-foreground mb-2">
-                YOUR ACTIVE STRATEGIES
+                PRICE PER SHARE
               </p>
-              <p className="text-3xl font-mono font-bold text-foreground">3</p>
+              <p className="text-3xl font-mono font-bold text-foreground">
+                $ {pricePerShare || "0.00"}
+              </p>
             </motion.div>
 
             <motion.div
@@ -394,7 +391,10 @@ setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
                   DEPOSITED AMOUNT
                 </p>
                 <p className="text-5xl font-mono font-bold text-foreground mb-2">
-                 $ {hideBalances ? "••••••" : Number(AssetsHeldByUser || 0).toFixed(2)}
+                  ${" "}
+                  {hideBalances
+                    ? "••••••"
+                    : Number(AssetsHeldByUser || 0).toFixed(2)}
                 </p>
                 <p className="text-sm font-mono text-muted-foreground">vUSDT</p>
               </div>

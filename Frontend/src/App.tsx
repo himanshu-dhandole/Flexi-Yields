@@ -14,6 +14,7 @@ import { Navbar } from "./components/navbar";
 import { Footer } from "./components/footer";
 import { GithubIcon, TwitterIcon } from "./components/icons";
 import { InstagramIcon } from "lucide-react";
+import ContactPage from "./pages/contact";
 
 const queryClient = new QueryClient();
 const socialLinksData = [
@@ -50,6 +51,7 @@ function App() {
             <Route element={<PoolsPage />} path="/pools" />
             <Route element={<VaultPage />} path="/vault" />
             <Route element={<Error404/>} path="*" />
+            <Route element={<ContactPage/>} path="/contact" />
           </Routes>
         </QueryClientProvider>
       </ThirdwebProvider>

@@ -1,38 +1,9 @@
-// import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
-// import DefaultLayout from "@/layouts/default";
-
-// export default function ErrorPage() {
-//     return (
-//         <DefaultLayout>
-       
-//          <div className="relative w-full h-screen overflow-hidden">
-//       {/* Gradient Background */}
-//       <AnimatedGradientBackground />
-
-//       <div className="relative z-10 flex flex-col items-center justify-start h-full px-4 pt-32 text-center">
-      
-//           <p className="mt-4 text-lg text-gray-300 md:text-xl max-w-lg">
-//             A customizable animated radial gradient background with a subtle
-//             breathing effect.
-//           </p>
-//       </div>
-//     </div>
-//         </DefaultLayout>
-//     );
-// }
 import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import DefaultLayout from "@/layouts/default";
-import { Home, ArrowLeft } from "lucide-react";
+import { Home } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function ErrorPage() {
-    const handleGoHome = () => {
-        window.location.href = "/";
-    };
-
-    const handleGoBack = () => {
-        window.history.back();
-    };
 
     return (
         <DefaultLayout>
