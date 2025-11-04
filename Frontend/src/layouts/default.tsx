@@ -29,7 +29,7 @@ export default function DefaultLayout({
 }) {
   return (
     <div className="relative flex flex-col h-screen ">
-      <Navbar />
+      {/* <Navbar /> */}
       {/* <Header /> */}
       <main className="w-full flex-grow">{children}</main>
       <Footer

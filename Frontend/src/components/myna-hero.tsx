@@ -671,6 +671,7 @@ import {
   Code,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const highlights = [
   { icon: Brain, label: "AI-Optimized Yield Routing" },
@@ -934,12 +935,13 @@ export default function MynaHero() {
               }`}
               style={{ transitionDelay: "2.4s" }}
             >
+              <Link to={"/vault"}>
               <Button
                 size="lg"
                 className="cursor-pointer rounded-none mt-12 bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 font-mono transition-all duration-300 hover:scale-105"
               >
                 LAUNCH APP <ArrowRight className="ml-1 w-4 h-4" />
-              </Button>
+              </Button></Link>
             </div>
           </div>
         </section>
