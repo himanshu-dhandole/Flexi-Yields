@@ -1,10 +1,7 @@
-import { Link } from "@heroui/link";
-
-import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { Book, FacebookIcon, InstagramIcon, XIcon } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "lucide-react";
 import { GithubIcon, TwitterIcon } from "@/components/icons";
-import { Header } from "@/components/header-2";
+import { Navbar } from "@/components/navbar";
 const socialLinksData = [
   { label: "Github", href: "#", icon: <GithubIcon /> },
   { label: "Instagram", href: "#", icon: <InstagramIcon /> },

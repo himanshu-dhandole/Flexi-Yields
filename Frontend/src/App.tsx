@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 
 import IndexPage from "@/pages/index";
 import DocsPage from "@/pages/docs";
-import PricingPage from "@/pages/pricing";
+import AdminPage from "@/pages/AdminPage";
 import PoolsPage from "@/pages/pools";
 import VaultPage from "@/pages/VaultPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ function App() {
           <Routes>
             <Route element={<IndexPage />} path="/" />
             <Route element={<DocsPage />} path="/docs" />
-            <Route element={<PricingPage />} path="/pricing" />
+            <Route element={<AdminPage />} path="/admin" />
             <Route element={<PoolsPage />} path="/pools" />
             <Route element={<VaultPage />} path="/vault" />
             <Route element={<Error404/>} path="*" />
