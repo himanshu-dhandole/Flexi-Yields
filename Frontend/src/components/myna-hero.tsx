@@ -220,19 +220,27 @@ export default function MynaHero() {
 
       <main>
         {/* Hero Section */}
-        <section className="container mx-auto px-4 py-24 relative">
+        <section className="container mx-auto px-4 py-32 relative">
           <div className="flex flex-col items-center text-center">
+            <div className="inline-block mb-6 px-4 py-2 border border-orange-600/30 bg-orange-600/5">
+              <span className="text-xs font-mono text-orange-500 tracking-widest">
+                NEXT-GEN DEFI INFRASTRUCTURE
+              </span>
+            </div>
+
             <h1
-              className={`relative font-mono text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl mx-auto leading-tight transition-all duration-700 ${
+              className={`relative font-mono text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl max-w-5xl mx-auto leading-tight transition-all duration-700 ${
                 heroVisible
-                  ? "opacity-100 blur-0 translate-y-0"
-                  : "opacity-0 blur-lg translate-y-12"
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-12"
               }`}
             >
               {titleWords.map((text, index) => (
                 <span
                   key={index}
-                  className="inline-block mx-2 md:mx-4"
+                  className={`inline-block mx-2 md:mx-4 ${
+                    index === 2 ? "text-orange-500" : ""
+                  }`}
                   style={{
                     animation: heroVisible
                       ? `fadeInUp 0.6s ease-out ${index * 0.15}s forwards`
@@ -246,7 +254,7 @@ export default function MynaHero() {
             </h1>
 
             <p
-              className={`mx-auto mt-8 max-w-2xl text-xl text-muted-foreground font-mono transition-all duration-700 ${
+              className={`mx-auto mt-8 max-w-2xl text-lg text-slate-400 font-mono transition-all duration-700 ${
                 heroVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-5"
@@ -258,7 +266,7 @@ export default function MynaHero() {
             </p>
 
             <div
-              className={`mt-12 flex flex-wrap justify-center gap-6 transition-all duration-700 ${
+              className={`mt-12 flex flex-wrap justify-center gap-8 transition-all duration-700 ${
                 heroVisible ? "opacity-100" : "opacity-0"
               }`}
               style={{ transitionDelay: "1.8s" }}
@@ -266,7 +274,7 @@ export default function MynaHero() {
               {highlights.map((feature, index) => (
                 <div
                   key={feature.label}
-                  className="flex items-center gap-2 px-6 transition-all duration-300 hover:scale-105"
+                  className="flex items-center gap-3 px-6 py-3 border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm transition-all duration-300 hover:border-orange-600/50 hover:bg-slate-800/50"
                   style={{
                     animation: heroVisible
                       ? `fadeInUp 0.6s ease-out ${1.8 + index * 0.15}s forwards`
@@ -274,8 +282,8 @@ export default function MynaHero() {
                     opacity: 0,
                   }}
                 >
-                  <feature.icon className="h-5 w-5 text-[#FF6B2C]" />
-                  <span className="text-sm font-mono">{feature.label}</span>
+                  <feature.icon className="h-5 w-5 text-orange-500" />
+                  <span className="text-sm font-mono text-slate-300">{feature.label}</span>
                 </div>
               ))}
             </div>
@@ -288,16 +296,13 @@ export default function MynaHero() {
               }`}
               style={{ transitionDelay: "2.4s" }}
             >
-              <Link to={"/vault"}>
-              <Button
-                size="lg"
-                className="cursor-pointer rounded-none mt-12 bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 font-mono transition-all duration-300 hover:scale-105"
-              >
-                LAUNCH APP <ArrowRight className="ml-1 w-4 h-4" />
-              </Button></Link>
+              <button className="mt-12 px-10 py-4 bg-orange-600 hover:bg-orange-700 font-mono font-semibold transition-all duration-300 hover:scale-105 flex items-center gap-2">
+                LAUNCH APP <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </section>
+
 
         {/* Live Stats Dashboard */}
         <section className="py-16 relative">
