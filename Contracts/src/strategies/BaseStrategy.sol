@@ -1,13 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
+
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 /**
  * @title BaseStrategy
  * @notice Base implementation for yield strategies using ERC4626
  * @dev Simulates yield generation with configurable APY
+ *
+ * Key fixes:
+ * - Views are deterministic (no fresh randomness on each view).
+ * - Randomness is produced only during state updates (_generateYield).
+ * - Added hourly publisher that emits an event once per hour.
  */
 abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -21,22 +28,22 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
     uint256 public lastYieldUpdate;
     uint256 public accumulatedYield;
 
+    // Last applied random factor (stored as percent, e.g., 100 => 100%)
+    uint256 public lastRandomFactor;
+
+    // Hourly estimate control
+    uint256 public lastHourlyEstimate;
+
     event Harvested(uint256 amount, uint256 timestamp);
     event YieldGenerated(uint256 amount);
     event VaultUpdated(address indexed oldVault, address indexed newVault);
+    event HourlyEstimate(uint256 estimatedYield, uint256 timestamp);
 
     modifier onlyVault() {
         require(msg.sender == vault, "BaseStrategy: Only vault can call");
         _;
     }
 
-    /**
-     * @notice Initialize the strategy
-     * @param _asset Underlying asset (vETH)
-     * @param _name ERC20 name for strategy shares
-     * @param _symbol ERC20 symbol for strategy shares
-     * @param _baseAPY Base APY in basis points
-     */
     constructor(
         IERC20 _asset,
         string memory _name,
@@ -46,12 +53,9 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
         require(_baseAPY > 0 && _baseAPY < 50000, "BaseStrategy: Invalid APY"); // Max 500%
         baseAPY = _baseAPY;
         lastYieldUpdate = block.timestamp;
+        lastRandomFactor = 100; // start neutral (100%)
     }
 
-    /**
-     * @notice Set the vault address (only owner)
-     * @param _vault New vault address
-     */
     function setVault(address _vault) external onlyOwner {
         require(_vault != address(0), "BaseStrategy: Invalid vault address");
         address oldVault = vault;
@@ -61,40 +65,49 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
 
     /**
      * @notice Generate simulated yield based on time elapsed
-     * @dev Calculates yield with randomness for realistic simulation
+     * @dev Calculates yield and updates state. Randomness applied here only.
      */
     function _generateYield() internal {
         uint256 timeElapsed = block.timestamp - lastYieldUpdate;
-        if (timeElapsed > 0 && totalAssets() > 0) {
-            // Calculate yield: (principal * APY * time) / (365 days * 10000)
-            uint256 baseYield = (totalAssets() * baseAPY * timeElapsed) /
-                (365 days * 10000);
+        if (timeElapsed == 0) return;
 
-            // Add randomness (±20%) for realistic variation
-            uint256 randomSeed = uint256(
-                keccak256(
-                    abi.encodePacked(
-                        block.timestamp,
-                        block.prevrandao,
-                        address(this)
-                    )
-                )
-            );
-            uint256 randomFactor = (randomSeed % 40) + 90; // 90-130%
-            uint256 yield = (baseYield * randomFactor) / 100;
-
-            accumulatedYield += yield;
+        // Use explicit baseAssets calculation to avoid recursive totalAssets() call.
+        uint256 baseAssets = IERC20(asset()).balanceOf(address(this)) +
+            accumulatedYield;
+        if (baseAssets == 0) {
             lastYieldUpdate = block.timestamp;
-
-            emit YieldGenerated(yield);
+            return;
         }
+
+        // Calculate yield: (principal * APY * time) / (365 days * 10000)
+        uint256 baseYield = (baseAssets * baseAPY * timeElapsed) /
+            (365 days * 10000);
+
+        // Generate randomness ONCE and store it (±20% like before)
+        uint256 randomSeed = uint256(
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.prevrandao,
+                    address(this),
+                    baseYield
+                )
+            )
+        );
+        uint256 randomFactor = (randomSeed % 40) + 90; // 90..129 (i.e., 90%..129%)
+        lastRandomFactor = randomFactor;
+
+        uint256 yieldAmount = (baseYield * randomFactor) / 100;
+
+        // Update accumulated yield and last update timestamp
+        accumulatedYield += yieldAmount;
+        lastYieldUpdate = block.timestamp;
+
+        emit YieldGenerated(yieldAmount);
     }
 
     /**
      * @notice Deposit assets (only vault)
-     * @param assets Amount to deposit
-     * @param receiver Address receiving shares
-     * @return shares Amount of shares minted
      */
     function deposit(
         uint256 assets,
@@ -104,6 +117,9 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
         return super.deposit(assets, receiver);
     }
 
+    /**
+     * @notice Withdraw assets (only vault)
+     */
     function withdraw(
         uint256 assets,
         address receiver,
@@ -123,37 +139,28 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
 
     /**
      * @notice Calculate total assets including accumulated yield
-     * @return Total assets managed by strategy
+     * @dev Deterministic: uses stored lastRandomFactor (no fresh randomness).
      */
     function totalAssets() public view virtual override returns (uint256) {
-        uint256 baseAssets = IERC20(asset()).balanceOf(address(this));
+        uint256 baseAssets = IERC20(asset()).balanceOf(address(this)) +
+            accumulatedYield;
 
-        // Calculate pending yield
+        // Pending yield since lastYieldUpdate (deterministic, uses stored lastRandomFactor)
         uint256 timeElapsed = block.timestamp - lastYieldUpdate;
         uint256 pendingYield = 0;
 
         if (timeElapsed > 0 && baseAssets > 0) {
             uint256 baseYield = (baseAssets * baseAPY * timeElapsed) /
                 (365 days * 10000);
-            uint256 randomSeed = uint256(
-                keccak256(
-                    abi.encodePacked(
-                        block.timestamp,
-                        block.prevrandao,
-                        address(this)
-                    )
-                )
-            );
-            uint256 randomFactor = (randomSeed % 40) + 90;
-            pendingYield = (baseYield * randomFactor) / 100;
+            // Use stored lastRandomFactor (set during last state update)
+            pendingYield = (baseYield * lastRandomFactor) / 100;
         }
 
-        return baseAssets + accumulatedYield + pendingYield;
+        return baseAssets + pendingYield;
     }
 
     /**
      * @notice Get strategy balance (alias for totalAssets)
-     * @return Total assets in strategy
      */
     function balanceOf() external view returns (uint256) {
         return totalAssets();
@@ -161,7 +168,6 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
 
     /**
      * @notice Harvest accumulated yield (only vault)
-     * @return Amount of yield harvested
      */
     function harvest() external onlyVault nonReentrant returns (uint256) {
         _generateYield();
@@ -179,27 +185,16 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Get current estimated APY
-     * @return APY in basis points with random variation
+     * @notice Get current estimated APY (deterministic)
+     * @return APY in basis points based on lastRandomFactor
      */
     function estimatedAPY() external view returns (uint256) {
-        // Return APY with some random variation (±10%)
-        uint256 randomSeed = uint256(
-            keccak256(
-                abi.encodePacked(
-                    block.timestamp,
-                    block.prevrandao,
-                    address(this)
-                )
-            )
-        );
-        uint256 randomFactor = (randomSeed % 20) + 90; // 90-110%
-        return (baseAPY * randomFactor) / 100;
+        // Deterministic: report baseAPY adjusted by the last applied random factor
+        return (baseAPY * lastRandomFactor) / 100;
     }
 
     /**
      * @notice Withdraw all assets from strategy (only vault)
-     * @return Total amount withdrawn
      */
     function withdrawAll() external onlyVault nonReentrant returns (uint256) {
         _generateYield();
@@ -210,5 +205,55 @@ abstract contract BaseStrategy is ERC4626, Ownable, ReentrancyGuard {
         }
 
         return total;
+    }
+
+    /**
+     * @notice Publish hourly estimated yield and emit an event (callable by anyone)
+     * @dev Can be called at most once per hour. Emits HourlyEstimate(estimatedYield, timestamp).
+     * @return estimatedYield for next hour (deterministic, uses lastRandomFactor)
+     */
+    function publishHourlyEstimate() external nonReentrant returns (uint256) {
+        require(
+            block.timestamp - lastHourlyEstimate >= 1 hours,
+            "BaseStrategy: Hourly already published"
+        );
+
+        // Determine current effective assets (including accumulated yield)
+        uint256 baseAssets = IERC20(asset()).balanceOf(address(this)) +
+            accumulatedYield;
+
+        uint256 hourlyBaseYield = (baseAssets * baseAPY * 1 hours) /
+            (365 days * 10000);
+
+        uint256 estimatedHourlyYield = (hourlyBaseYield * lastRandomFactor) /
+            100;
+
+        lastHourlyEstimate = block.timestamp;
+        emit HourlyEstimate(estimatedHourlyYield, block.timestamp);
+
+        return estimatedHourlyYield;
+    }
+
+    /**
+     * @notice View-only version of hourly estimated yield
+     * @dev Simulates next-hour yield without minting or changing state
+     * @return estimatedHourlyYield The projected yield for the next hour
+     */
+    function viewHourlyYield()
+        external
+        view
+        returns (uint256 estimatedHourlyYield)
+    {
+        uint256 baseAssets = IERC20(asset()).balanceOf(address(this)) +
+            accumulatedYield;
+
+        if (baseAssets == 0) return 0;
+
+        // Hourly base yield = principal * APY * 1 hour / (365 days * 10000)
+        uint256 hourlyBaseYield = (baseAssets * baseAPY * 1 hours) /
+            (365 days * 10000);
+
+        // Apply the last random factor (deterministic)
+        estimatedHourlyYield = (hourlyBaseYield * lastRandomFactor) / 100;
     }
 }

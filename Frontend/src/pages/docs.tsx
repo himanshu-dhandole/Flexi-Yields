@@ -461,6 +461,38 @@ export default function DocsPage() {
     }
   };
 
+  const SetHourlyRate = async () => {
+    if (!address) return;
+    try {
+      const txHash = await writeContract(config, {
+        address: LENDING_STRATEGY_ADDRESS,
+        abi: LENDING_STRATEGY_ABI,
+        functionName: "publishHourlyEstimate",
+        account: address,
+        gas: 12_000_000n,
+      });
+      console.log("Set Hourly Rate Lending Strat tx:", txHash);
+      const receipt = await waitForTransactionReceipt(config, { hash: txHash });
+      console.log("Transaction confirmed:", receipt);
+    } catch (e) {
+      console.error("Failed to set hourly rate:", e);
+    }
+  };
+  const ViewHourlyRate = async () => {
+    if (!address) return;
+    try {
+      const txHash = await readContract(config, {
+        address: LENDING_STRATEGY_ADDRESS,
+        abi: LENDING_STRATEGY_ABI,
+        functionName: "viewHourlyYield",
+        account: address,
+      });
+      console.log("View Hourly Rate Lending Strat tx:", txHash);
+    } catch (e) {
+      console.error("Failed to set hourly rate:", e);
+    }
+  };
+
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10 mt-26">
@@ -544,6 +576,13 @@ export default function DocsPage() {
 
           <Button onClick={previewRedeem} disabled={!address || loading}>
             Preview Redeem 100 vUSDT
+          </Button>
+
+          <Button onClick={SetHourlyRate} disabled={!address || loading}>
+            Set Hourly Rate Lending Strategy
+          </Button>
+          <Button onClick={ViewHourlyRate} disabled={!address || loading}>
+            View Hourly Rate Lending Strategy
           </Button>
         </div>
 

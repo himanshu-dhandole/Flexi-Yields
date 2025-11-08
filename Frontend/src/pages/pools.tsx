@@ -52,13 +52,13 @@ export default function PoolsPage() {
     setLoading(true);
     try {
       const [
-        lendingTotalAssets,
+        lendingtotalAssets,
         lendingBalanceOf,
         lendingAPY,
-        stakingTotalAssets,
+        stakingtotalAssets,
         stakingBalanceOf,
         stakingAPY,
-        liquidityTotalAssets,
+        liquiditytotalAssets,
         liquidityBalanceOf,
         liquidityAPY,
       ] = await Promise.all([
@@ -116,17 +116,17 @@ export default function PoolsPage() {
 
       setPoolData({
         lending: {
-          totalAssets: lendingTotalAssets?.toString(),
+          totalAssets: lendingtotalAssets?.toString(),
           balanceOf: lendingBalanceOf?.toString(),
           estimatedAPY: lendingAPY?.toString(),
         },
         staking: {
-          totalAssets: stakingTotalAssets?.toString(),
+          totalAssets: stakingtotalAssets?.toString(),
           balanceOf: stakingBalanceOf?.toString(),
           estimatedAPY: stakingAPY?.toString(),
         },
         liquidity: {
-          totalAssets: liquidityTotalAssets?.toString(),
+          totalAssets: liquiditytotalAssets?.toString(),
           balanceOf: liquidityBalanceOf?.toString(),
           estimatedAPY: liquidityAPY?.toString(),
         },
