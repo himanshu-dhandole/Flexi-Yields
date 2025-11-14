@@ -67,9 +67,9 @@ export default function VaultPage() {
         address: YIELD_VAULT_ADDRESS,
         abi: YIELD_VAULT_ABI,
         functionName: "getVaultStats",
-      })) as [bigint, bigint, bigint, bigint]; // tuple: [totalDeposited, totalWithdrawn, totalAssets, totalShares]
+      })) as [bigint, bigint, bigint, bigint];
 
-      setVaultData(formatUnits(vaultResult[2], 18)); // vaultResult[2] = totalAssets
+      setVaultData(formatUnits(vaultResult[2], 18));
 
       const balance = (await readContract(config, {
         address: VUSDT_ADDRESS,
@@ -197,7 +197,6 @@ export default function VaultPage() {
           await loadVaultBalances();
         }
       } else {
-        // Handle withdraw based on type
         if (withdrawType === "flex") {
           const shares = parseUnits(amount, 18);
           const tx = await writeContract(config, {
@@ -251,8 +250,6 @@ export default function VaultPage() {
     }
   };
 
- 
-
   useEffect(() => {
     if (address) loadVaultBalances();
   }, [address]);
@@ -287,12 +284,12 @@ export default function VaultPage() {
   return (
     <DefaultLayout>
       <div className="min-h-screen pt-6 bg-background">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 ">
-          {/* Header */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Header - Cleaner with glass effect */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between mb-12 border-b border-[#FF6B2C]/20 pb-6"
+            className="flex items-center justify-between mb-12 backdrop-blur-sm bg-[#FF6B2C]/5 border border-[#FF6B2C]/20 rounded-lg p-6"
           >
             <div>
               <h1 className="text-4xl font-mono font-bold text-foreground mb-2">
@@ -305,19 +302,19 @@ export default function VaultPage() {
             </div>
             <button
               onClick={() => setHideBalances(!hideBalances)}
-              className="p-2 border border-[#FF6B2C]/20 hover:bg-[#FF6B2C]/5 transition-colors"
+              className="p-3 backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 hover:bg-[#FF6B2C]/10 transition-all rounded-lg"
             >
               {hideBalances ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </motion.div>
 
-          {/* Main Stats Grid */}
+          {/* Main Stats Grid - Glassmorphism */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="border border-[#FF6B2C]/20 p-6 bg-[#FF6B2C]/5"
+              className="backdrop-blur-sm bg-[#FF6B2C]/10 border border-[#FF6B2C]/30 rounded-lg p-6 hover:bg-[#FF6B2C]/15 transition-all"
             >
               <p className="text-xs font-mono text-muted-foreground mb-2">
                 CURRENT APY
@@ -331,7 +328,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="border border-[#FF6B2C]/20 p-6"
+              className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
             >
               <p className="text-xs font-mono text-muted-foreground mb-2">
                 TOTAL VAULT BALANCE
@@ -345,7 +342,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="border border-[#FF6B2C]/20 p-6"
+              className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
             >
               <p className="text-xs font-mono text-muted-foreground mb-2">
                 PRICE PER SHARE
@@ -359,7 +356,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="border border-[#FF6B2C]/20 p-6"
+              className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
             >
               <p className="text-xs font-mono text-muted-foreground mb-2">
                 YOUR $FLEX BALANCE
@@ -377,7 +374,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="md:col-span-2 border border-[#FF6B2C]/20 p-8"
+              className="md:col-span-2 backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-8"
             >
               <div className="flex items-center gap-3 mb-8">
                 <Lock size={20} className="text-[#FF6B2C]" />
@@ -399,7 +396,7 @@ export default function VaultPage() {
                 <p className="text-sm font-mono text-muted-foreground">vUSDT</p>
               </div>
 
-              <div className="border-t border-[#FF6B2C]/20 pt-6 mb-8">
+              <div className="backdrop-blur-sm bg-[#FF6B2C]/5 border border-[#FF6B2C]/20 rounded-lg p-4 mb-8">
                 <div className="grid grid-cols-3 gap-6">
                   <div>
                     <p className="text-xs font-mono text-muted-foreground mb-1">
@@ -413,14 +410,14 @@ export default function VaultPage() {
               <div className="flex gap-4">
                 <button
                   onClick={() => openModal("deposit")}
-                  className="flex-1 bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white font-mono py-4 border-none transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white font-mono py-4 border-none transition-all rounded-lg flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#FF6B2C]/30"
                 >
                   <ArrowDown size={18} />
                   DEPOSIT
                 </button>
                 <button
                   onClick={() => openModal("withdraw")}
-                  className="flex-1 border border-[#FF6B2C]/20 hover:bg-[#FF6B2C]/5 text-foreground font-mono py-4 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/30 hover:bg-[#FF6B2C]/10 text-foreground font-mono py-4 transition-all rounded-lg flex items-center justify-center gap-2"
                 >
                   <ArrowUp size={18} />
                   WITHDRAW
@@ -435,7 +432,7 @@ export default function VaultPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="border border-[#FF6B2C]/20 p-6"
+                className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Wallet size={16} className="text-[#FF6B2C]" />
@@ -456,7 +453,7 @@ export default function VaultPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="border border-[#FF6B2C]/20 p-6 bg-[#FF6B2C]/5"
+                className="backdrop-blur-sm bg-[#FF6B2C]/10 border border-[#FF6B2C]/30 rounded-lg p-6"
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Gift size={16} className="text-[#FF6B2C]" />
@@ -471,7 +468,7 @@ export default function VaultPage() {
                 </p>
                 <button
                   onClick={handleAirdrop}
-                  className="w-full bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white font-mono py-3 border-none transition-colors"
+                  className="w-full bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white font-mono py-3 border-none transition-all rounded-lg hover:shadow-lg hover:shadow-[#FF6B2C]/30"
                 >
                   CLAIM TOKENS
                 </button>
@@ -485,7 +482,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="border border-[#FF6B2C]/20 p-6 hover:bg-[#FF6B2C]/5 transition-colors"
+              className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
             >
               <div className="flex items-start gap-4">
                 <Cpu size={20} className="text-[#FF6B2C] mt-1" />
@@ -504,7 +501,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="border border-[#FF6B2C]/20 p-6 hover:bg-[#FF6B2C]/5 transition-colors"
+              className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
             >
               <div className="flex items-start gap-4">
                 <LineChart size={20} className="text-[#FF6B2C] mt-1" />
@@ -523,7 +520,7 @@ export default function VaultPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="border border-[#FF6B2C]/20 p-6 hover:bg-[#FF6B2C]/5 transition-colors"
+              className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/5 transition-all"
             >
               <div className="flex items-start gap-4">
                 <Lock size={20} className="text-[#FF6B2C] mt-1" />
@@ -540,15 +537,15 @@ export default function VaultPage() {
           </div>
         </div>
 
-        {/* Transaction Modal */}
+        {/* Transaction Modal - Enhanced */}
         <Modal
           isOpen={isOpen}
           onClose={handleModalClose}
           size="md"
           classNames={{
-            base: "border border-[#FF6B2C]/20 rounded-none",
-            header: "border-b border-[#FF6B2C]/20",
-            footer: "border-t border-[#FF6B2C]/20",
+            base: "backdrop-blur-xl bg-background/95 border border-[#FF6B2C]/30 rounded-xl shadow-2xl",
+            header: "border-b border-[#FF6B2C]/20 pb-4",
+            footer: "border-t border-[#FF6B2C]/20 pt-4",
           }}
         >
           <ModalContent>
@@ -573,13 +570,9 @@ export default function VaultPage() {
             <ModalBody>
               {actionType === "withdraw" && showWithdrawOptions ? (
                 <div className="space-y-4">
-                  {/* <p className="text-xs font-mono text-muted-foreground mb-4">
-                    CHOOSE YOUR WITHDRAWAL METHOD
-                  </p> */}
-
                   <button
                     onClick={() => handleWithdrawTypeSelect("asset")}
-                    className="w-full border border-[#FF6B2C]/20 p-6 hover:bg-[#FF6B2C]/5 transition-colors text-left"
+                    className="w-full backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/10 transition-all text-left"
                   >
                     <div className="flex items-start gap-4">
                       <Database size={20} className="text-[#FF6B2C] mt-1" />
@@ -591,7 +584,7 @@ export default function VaultPage() {
                           WITHDRAW DIRECTLY IN vUSDT FROM YOUR VAULT BALANCE
                         </p>
                         <p className="text-xs font-mono text-[#FF6B2C] mt-2">
-                          AVAILABLE: $ {vaultBalance || "0.00"}
+                          AVAILABLE: $ {vaultBalance.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -599,7 +592,7 @@ export default function VaultPage() {
 
                   <button
                     onClick={() => handleWithdrawTypeSelect("flex")}
-                    className="w-full border border-[#FF6B2C]/20 p-6 hover:bg-[#FF6B2C]/5 transition-colors text-left"
+                    className="w-full backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-6 hover:bg-[#FF6B2C]/10 transition-all text-left"
                   >
                     <div className="flex items-start gap-4">
                       <TrendingUp size={20} className="text-[#FF6B2C] mt-1" />
@@ -615,8 +608,7 @@ export default function VaultPage() {
                         </p>
                       </div>
                     </div>
-                  </button>9+
-                  888
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -645,7 +637,7 @@ export default function VaultPage() {
                             : vaultBalance.toFixed(2)}
                       </button>
                     </div>
-                    <div className="border border-[#FF6B2C]/20 p-4 flex items-center gap-2">
+                    <div className="backdrop-blur-sm bg-background/50 border border-[#FF6B2C]/20 rounded-lg p-4 flex items-center gap-2">
                       <input
                         type="number"
                         placeholder="0.00"
@@ -660,7 +652,7 @@ export default function VaultPage() {
                   </div>
 
                   {amount && parseFloat(amount) > 0 && (
-                    <div className="border border-[#FF6B2C]/20 p-4 bg-[#FF6B2C]/5">
+                    <div className="backdrop-blur-sm bg-[#FF6B2C]/10 border border-[#FF6B2C]/30 rounded-lg p-4">
                       <p className="text-xs font-mono text-muted-foreground">
                         {actionType === "deposit"
                           ? "NEW VAULT BALANCE: "
@@ -700,22 +692,27 @@ export default function VaultPage() {
                 </div>
               )}
             </ModalBody>
-            <ModalFooter>
+             <ModalFooter>
               <button
                 onClick={handleModalClose}
-                className="px-6 py-2 border border-[#FF6B2C]/20 hover:bg-[#FF6B2C]/5 font-mono text-sm transition-colors"
+                className="px-8 py-4 backdrop-blur-xl bg-white/5 border-2 border-white/20 hover:bg-white/10 font-bold text-white rounded-xl transition-all duration-300 hover:scale-105"
               >
-                CANCEL
+                Cancel
               </button>
               {!showWithdrawOptions && (
                 <button
                   onClick={handleTransaction}
                   disabled={!amount || parseFloat(amount) <= 0 || loading}
-                  className="px-6 py-2 bg-[#FF6B2C] hover:bg-[#FF6B2C]/90 text-white font-mono text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-4 bg-gradient-to-r from-[#FF6B2C] to-[#FF8C5C] hover:from-[#FF8C5C] hover:to-[#FF6B2C] text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg hover:shadow-[#FF6B2C]/50 flex items-center gap-2"
                 >
-                  {loading
-                    ? "PROCESSING..."
-                    : `CONFIRM ${actionType === "deposit" ? "DEPOSIT" : withdrawType === "flex" ? "REDEEM" : "WITHDRAWAL"}`}
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    `Confirm ${actionType === "deposit" ? "Deposit" : withdrawType === "flex" ? "Redeem" : "Withdrawal"}`
+                  )}
                 </button>
               )}
             </ModalFooter>
@@ -727,27 +724,28 @@ export default function VaultPage() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: "#0F0F0F",
+              background: "rgba(15, 15, 15, 0.95)",
+              backdropFilter: "blur(20px)",
               color: "#F5F5F5",
-              border: "1px solid #FF6B2C40",
-              borderRadius: "10px",
-              padding: "22px 30px",
-              fontFamily: "monospace",
-              fontSize: "15px",
-              boxShadow: "none",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              borderRadius: "16px",
+              padding: "20px 28px",
+              fontFamily: "system-ui, -apple-system, sans-serif",
+              fontSize: "14px",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
             },
             classNames: {
               toast:
-                "border border-[#FF6B2C30] shadow-none transition-all duration-150 hover:translate-x-[-3px]",
-              title: "text-[16px] font-semibold tracking-tight",
-              description: "text-neutral-400 text-[14px] mt-1",
-              success: "border-[#FF6B2C] text-[#FF6B2C] bg-[#1A1A1A]",
-              error: "border-red-500 text-red-400 bg-[#1A1A1A]",
-              info: "border-[#FF6B2C]/50 text-[#FF6B2C]/80 bg-[#1A1A1A]",
+                "backdrop-blur-xl bg-slate-900/90 border-2 border-white/10 shadow-2xl transition-all duration-300 hover:translate-x-[-6px] hover:shadow-3xl",
+              title: "text-base font-bold tracking-tight",
+              description: "text-gray-400 text-sm mt-1.5 leading-relaxed",
+              success: "border-green-500/50 bg-green-500/10",
+              error: "border-red-500/50 bg-red-500/10",
+              info: "border-[#FF6B2C]/50 bg-[#FF6B2C]/10",
               actionButton:
-                "bg-[#FF6B2C] text-black px-3 py-1.5 rounded-md font-medium hover:bg-[#ff854d]",
+                "bg-gradient-to-r from-[#FF6B2C] to-[#FF8C5C] text-white px-4 py-2 rounded-lg font-bold hover:scale-105 transition-transform",
               cancelButton:
-                "text-neutral-400 hover:text-white border border-neutral-700 px-3 py-1.5 rounded-md",
+                "text-gray-400 hover:text-white border-2 border-white/20 px-4 py-2 rounded-lg backdrop-blur-xl bg-white/5 hover:bg-white/10 transition-all",
             },
           }}
         />
