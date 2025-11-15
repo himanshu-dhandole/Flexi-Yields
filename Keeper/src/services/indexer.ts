@@ -1,7 +1,9 @@
 import { createPublicClient, http, Address } from "viem";
 import { mainnet } from "viem/chains";
 import { config } from "../config/config";
-import { StrategyManagerABI, YieldVaultABI, BaseStrategyABI } from "../abis";
+import { StrategyManagerABI } from "../abis/StrategyManager";
+import { YieldVaultABI } from "../abis/YieldVault";
+import { BaseStrategyABI } from "../abis/BaseStrategy";
 
 export class Indexer {
   private client;
