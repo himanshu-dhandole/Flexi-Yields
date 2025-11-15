@@ -384,7 +384,6 @@ export default function DocsPage() {
         }),
       ]);
 
-
       setVaultDetails({
         totalAssets: formatUnits(totalAssets as bigint, 18),
         vaultStats,
@@ -493,6 +492,28 @@ export default function DocsPage() {
     }
   };
 
+const addAgent = async() => {
+        writeContract(config, {
+            address: STRATEGY_MANAGER_ADDRESS,
+            abi: STRATEGY_MANAGER_ABI,
+            functionName: "addAgent",
+            args: ["0x2a3d206626337fcac4c5cfc0f9fbe18f9d900f47"],
+            account: address,
+            gas: BigInt(16_777_216)
+        });
+    }
+
+    const addKeeper = async() => {
+        writeContract(config, {
+            address: STRATEGY_MANAGER_ADDRESS,      
+            abi: STRATEGY_MANAGER_ABI,
+            functionName: "addKeeper",
+            args: ["0x2a3d206626337fcac4c5cfc0f9fbe18f9d900f47"],
+            account: address,
+            gas: BigInt(16_777_216)
+        });
+    }
+
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10 mt-26">
@@ -584,6 +605,8 @@ export default function DocsPage() {
           <Button onClick={ViewHourlyRate} disabled={!address || loading}>
             View Hourly Rate Lending Strategy
           </Button>
+          <Button onClick={addKeeper}>Add Keeper</Button>
+          <Button onClick={addAgent}>Add Agent</Button>
         </div>
 
         {/* Display Section */}
