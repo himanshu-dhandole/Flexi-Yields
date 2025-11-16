@@ -13,6 +13,8 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
  */
 contract StrategyManager is Ownable, AccessControl, ReentrancyGuard, EIP712 {
     using ECDSA for bytes32;
+
+    // ============ CORE STRUCTS ============
     
     struct StrategyInfo {
         address strategy;
@@ -30,6 +32,8 @@ contract StrategyManager is Ownable, AccessControl, ReentrancyGuard, EIP712 {
         string modelVersion;
         uint256 confidence; // 1e18 = 100%
     }
+
+    // ============ STATE ============
     
     StrategyInfo[] public strategies;
     address public vault;
@@ -45,11 +49,12 @@ contract StrategyManager is Ownable, AccessControl, ReentrancyGuard, EIP712 {
     uint256 public lastAIRebalance;
     
     // Safety limits (basis points)
-    uint256 public maxSingle = 4000;     
-    uint256 public maxShift = 2000;       
-    uint256 public minConfidence = 7000;  
+    uint256 public maxSingle = 4000;      // 40%
+    uint256 public maxShift = 2000;       // 20%
+    uint256 public minConfidence = 7000;  // 70%
     uint256 public cooldown = 6 hours;
     
+    // ============ EVENTS ============
     
     event StrategyAdded(address indexed strategy, uint256 allocation);
     event StrategyRemoved(address indexed strategy, uint256 index);
@@ -58,16 +63,20 @@ contract StrategyManager is Ownable, AccessControl, ReentrancyGuard, EIP712 {
     event AISubmitted(address indexed agent, uint256 nonce, uint256 confidence);
     event AIExecuted(address indexed keeper, uint256 timestamp);
     
+    // ============ MODIFIERS ============
     
     modifier onlyVault() {
         require(msg.sender == vault, "Only vault");
         _;
     }
     
+    // ============ CONSTRUCTOR ============
+    
     constructor() Ownable(msg.sender) EIP712("StrategyManager", "1") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // ============ MANUAL FUNCTIONS ============
     
     function setVault(address _vault) external onlyOwner {
         require(_vault != address(0), "Invalid vault");
