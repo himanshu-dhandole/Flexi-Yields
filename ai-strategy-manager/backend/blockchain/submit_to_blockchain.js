@@ -1,6 +1,13 @@
+/**
+ * Submit AI recommendation to StrategyManager smart contract
+ */
+
 const { ethers } = require('ethers');
 const { MongoClient } = require('mongodb');
-require('dotenv').config();
+const path = require('path');
+
+// Load .env from project root
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const STRATEGY_MANAGER_ABI = [
   "function submitAI((address manager, uint256 nonce, uint256 deadline, uint256[] indices, uint256[] allocations, uint256 timestamp, string modelVersion, uint256 confidence) rec, bytes sig) external",
@@ -8,49 +15,32 @@ const STRATEGY_MANAGER_ABI = [
   "event AISubmitted(address indexed agent, uint256 nonce, uint256 confidence)"
 ];
 
-
 class BlockchainSubmitter {
   constructor() {
-    const rpcUrl = process.env.RPC_URL;
-    if (!rpcUrl) throw new Error('RPC_URL is not set in environment');
-
-    this.provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-
-    // Prefer a direct private key; fallback to mnemonic
-    const pk = process.env.PRIVATE_KEY;
-    const mnemonic = process.env.MNEMONIC;
-
-    if (!pk && !mnemonic) {
-      // very explicit, easier to diagnose than the internal SigningKey error
-      throw new Error('No PRIVATE_KEY or MNEMONIC found in environment. Add PRIVATE_KEY=0x... or MNEMONIC="word1 word2 ..." to .env');
+    // Validate environment variables
+    if (!process.env.RPC_URL) {
+      throw new Error('RPC_URL not found in .env file');
     }
-
-    // masked debug log (safe)
-    if (pk) {
-      console.log('Using PRIVATE_KEY: ' + (typeof pk === 'string' ? `${pk.slice(0,6)}...${pk.slice(-4)}` : typeof pk));
-      // ensure private key looks like hex
-      if (typeof pk !== 'string' || !pk.match(/^0x[0-9a-fA-F]{64}$/)) {
-        throw new Error('PRIVATE_KEY must be a 0x-prefixed 64-hex-char string. Example: PRIVATE_KEY=0xabc123...');
-      }
-      this.wallet = new ethers.Wallet(pk, this.provider);
-    } else {
-      console.log('Using MNEMONIC (first account)');
-      if (typeof mnemonic !== 'string' || mnemonic.trim().split(/\s+/).length < 12) {
-        throw new Error('MNEMONIC looks invalid. Provide a standard BIP-39 mnemonic phrase.');
-      }
-      this.wallet = ethers.Wallet.fromMnemonic(mnemonic).connect(this.provider);
+    if (!process.env.PRIVATE_KEY) {
+      throw new Error('PRIVATE_KEY not found in .env file');
     }
-
-    // contract setup
+    if (!process.env.STRATEGY_MANAGER_ADDRESS) {
+      throw new Error('STRATEGY_MANAGER_ADDRESS not found in .env file');
+    }
+    if (!process.env.MONGO_URI) {
+      throw new Error('MONGO_URI not found in .env file');
+    }
+    
+    this.provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+    this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
     this.contract = new ethers.Contract(
       process.env.STRATEGY_MANAGER_ADDRESS,
       STRATEGY_MANAGER_ABI,
       this.wallet
     );
-
+    
     this.mongoClient = new MongoClient(process.env.MONGO_URI);
   }
-
 
   async connect() {
     await this.mongoClient.connect();
@@ -98,7 +88,13 @@ class BlockchainSubmitter {
       confidence: recommendation.recommendation.confidence.toString()
     };
     
-    const signature = recommendation.signature;
+    // Fix signature format - ensure it has 0x prefix
+    let signature = recommendation.signature;
+    if (!signature.startsWith('0x')) {
+      signature = '0x' + signature;
+    }
+    
+    console.log(`\n🔑 Signature: ${signature.substring(0, 20)}...`);
     
     // Estimate gas
     const gasEstimate = await this.contract.estimateGas.submitAI(rec, signature);
