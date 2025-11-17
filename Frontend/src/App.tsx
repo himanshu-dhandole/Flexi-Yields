@@ -4,17 +4,17 @@ import IndexPage from "@/pages/index";
 import DocsPage from "@/pages/docs";
 import AdminPage from "@/pages/AdminPage";
 import PoolsPage from "@/pages/pools";
-import VaultPage from "@/pages/VaultPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThirdwebProvider } from "thirdweb/react";
 import { WagmiProvider } from "wagmi";
 import { config } from "./config/wagmiConfig";
 import Error404 from "./pages/error";
-import { Navbar } from "./components/navbar";
+import  {Navbar} from "./components/navbar";
 import { Footer } from "./components/footer";
 import { GithubIcon, TwitterIcon } from "./components/icons";
 import { InstagramIcon } from "lucide-react";
 import ContactPage from "./pages/contact";
+import VaultPage from "./pages/VaultPage";
 
 const queryClient = new QueryClient();
 const socialLinksData = [

@@ -514,6 +514,43 @@ const addAgent = async() => {
         });
     }
 
+    const getAllocations = async () => {
+            try {
+              const lend = await readContract(config, {
+                address: STRATEGY_MANAGER_ADDRESS,
+                abi: STRATEGY_MANAGER_ABI,
+                functionName: "getStrategy",
+                args: [0],
+              }) as [string, bigint, boolean];
+              console.log(lend[1]);
+              
+              // allocation is index 1
+    
+              const liquidity = await readContract(config, {
+                address: STRATEGY_MANAGER_ADDRESS,
+                abi: STRATEGY_MANAGER_ABI,
+              functionName: "getStrategy",
+                args: [1],
+              }) as [string, bigint, boolean];
+                            console.log(liquidity[1]);
+
+    
+    
+              const staking = await readContract(config, {
+                address: STRATEGY_MANAGER_ADDRESS,
+                abi: STRATEGY_MANAGER_ABI,
+                functionName: "getStrategy",
+                args: [2],
+              }) as [string, bigint, boolean];
+                            console.log(staking[1]);
+
+    
+    
+            } catch (err) {
+              console.error("Error allocations:", err);
+            }
+          };
+
   return (
     <DefaultLayout>
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10 mt-26">
@@ -607,6 +644,7 @@ const addAgent = async() => {
           </Button>
           <Button onClick={addKeeper}>Add Keeper</Button>
           <Button onClick={addAgent}>Add Agent</Button>
+          <Button onClick={getAllocations}>Get Allocations</Button>
         </div>
 
         {/* Display Section */}

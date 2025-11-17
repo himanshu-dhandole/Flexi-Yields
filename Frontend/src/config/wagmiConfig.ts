@@ -8,6 +8,6 @@ export const config = createConfig({
     injected(),
   ],
   transports: {
-    [sepolia.id]: http("https://eth-sepolia.g.alchemy.com/v2/TuaU6pL-QOrGnH7n7so2h"),
+    [sepolia.id]: http(),
   },
 })
