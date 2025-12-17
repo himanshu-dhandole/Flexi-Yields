@@ -73,71 +73,6 @@ export function HeroSection04() {
             View Protocol
           </button>
         </div>
-
-        <div className="md:flex mt-20 items-end justify-between">
-          <div className="relative">
-            <div className="w-60 h-36 shadow-lg border border-border rounded-md overflow-hidden mb-8 md:mb-0">
-              <img
-                src="https://images.unsplash.com/photo-1642525166481-3f4f4e1b5f6d?w=400&h=300&fit=crop"
-                alt="Protocol Dashboard"
-                className="w-full h-full object-cover opacity-80"
-              />
-            </div>
-            <div className="w-60 h-36 absolute left-6 -top-6 shadow-lg border border-border rounded-md overflow-hidden mb-8 md:mb-0">
-              <img
-                src="https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=400&h=300&fit=crop"
-                alt="Smart Contract Architecture"
-                className="w-full h-full object-cover opacity-80"
-              />
-            </div>
-            <div className="w-60 h-36 absolute left-12 -top-12 shadow-lg border border-border rounded-md overflow-hidden mb-8 md:mb-0">
-              <img
-                src="src/lib/chart2.png"
-                alt="Liquidity Optimization"
-                className="w-full h-full object-cover opacity-80"
-              />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center md:justify-end gap-2">
-              <span className="text-lg font-medium tracking-wider text-foreground/80">
-                KEY FEATURES
-              </span>
-              <ArrowDownRight className="size-6" />
-            </div>
-
-            <div className="mt-3 md:text-right">
-              <h2 className="text-5xl uppercase tracking-[-4px] text-foreground">
-                Autonomous DeFi
-              </h2>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-32 grid md:grid-cols-2 gap-8">
-          <div className="border border-border p-8 bg-muted/50">
-            <h3 className="text-2xl font-bold mb-4 text-foreground">
-              Technical Architecture
-            </h3>
-            <ul className="space-y-3 text-foreground/70">
-              <li>● Modular ERC-4626 vault architecture on Polygon</li>
-              <li>● Automated strategies with seamless protocol integration</li>
-              <li>● EIP-712 cryptographic verification system</li>
-              <li>● Gas-optimized multi-pool liquidity migrations</li>
-            </ul>
-          </div>
-          <div className="border border-border p-8 bg-muted/50">
-            <h3 className="text-2xl font-bold mb-4 text-foreground">
-              ML-Driven Intelligence
-            </h3>
-            <ul className="space-y-3 text-foreground/70">
-              <li>● Real-time APY prediction algorithms</li>
-              <li>● Risk-adjusted portfolio optimization</li>
-              <li>● Chainlink price feeds integration</li>
-              <li>● Authenticated, tamper-proof AI recommendations</li>
-            </ul>
-          </div>
-        </div>
       </div>
 
       <div
@@ -235,71 +170,7 @@ export function HeroSection04() {
           WebkitMaskComposite: "source-in",
         }}
       />
-      <CTA/>
     </section>
     
-  );
-}
-
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-)
-
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
-
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
-}
-
-export { Badge, badgeVariants }
-function CTA() {
-  return (
-    <div className="w-full py-20 lg:py-40">
-      <div className="container mx-auto">
-        <div className="flex flex-col text-center bg-muted rounded-md p-4 lg:p-14 gap-8 items-center">
-          <div>
-            <Badge>Get started</Badge>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="text-3xl md:text-5xl tracking-tighter max-w-xl font-regular">
-              Try our platform today!
-            </h3>
-            <p className="text-lg leading-relaxed tracking-tight text-muted-foreground max-w-xl">
-              Managing a small business today is already tough. Avoid further
-              complications by ditching outdated, tedious trade methods. Our goal
-              is to streamline SMB trade, making it easier and faster than ever.
-            </p>
-          </div>
-          <div className="flex flex-row gap-4">
-            <Button className="gap-4" variant="outline">
-              Jump on a call <PhoneCall className="w-4 h-4" />
-            </Button>
-            <Button className="gap-4">
-              Sign up here <MoveRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
