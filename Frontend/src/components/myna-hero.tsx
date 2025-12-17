@@ -151,13 +151,17 @@ const faqs = [
   },
 ];
 
-    interface AnimatedSectionProps {
-      children: React.ReactNode;
-      delay?: number;
-      className?: string;
-    }
+interface AnimatedSectionProps {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}
 
-function AnimatedSection({ children, delay = 0, className = "" }: AnimatedSectionProps ) {
+function AnimatedSection({
+  children,
+  delay = 0,
+  className = "",
+}: AnimatedSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
 
@@ -283,7 +287,9 @@ export default function MynaHero() {
                   }}
                 >
                   <feature.icon className="h-5 w-5 text-orange-500" />
-                  <span className="text-sm font-mono text-slate-300">{feature.label}</span>
+                  <span className="text-sm font-mono text-slate-300">
+                    {feature.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -302,7 +308,6 @@ export default function MynaHero() {
             </div>
           </div>
         </section>
-
 
         {/* Live Stats Dashboard */}
         <section className="py-16 relative">
